@@ -1,0 +1,17 @@
+{
+  "name": "doorbot-promisified",
+  "version": "1.0.0",
+  "description": "for ring doorbells",
+  "main": "doorbot-promisified.js",
+  "dependencies": {
+    "colors": "^1.1.2",
+    "doorbot": "^3.0.1",
+    "lodash.flatten": "^4.4.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jim Higson",
+  "license": "ISC"
+}
