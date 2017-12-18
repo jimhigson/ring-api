@@ -8,7 +8,6 @@ usage
 ---
 
 ```js
-// pass any options that doorbot accepts:
 const RingApi = require( 'ring-api' );
 const ringApi =  RingApi( {
     email: 'you@example.com',
