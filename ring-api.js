@@ -13,7 +13,7 @@ const EventEmitter = require('events');
 const API_VERSION = 9;
 const hardware_id = require("crypto").randomBytes(16).toString("hex");
 
-module.exports = async ({email, password, userAgent = '@nodejs-node-api'}) => {
+module.exports = async ({email, password, userAgent = 'github.com/jimhigson/ring-api', poll = true}) => {
 
     const events = new EventEmitter();
 
@@ -180,7 +180,9 @@ module.exports = async ({email, password, userAgent = '@nodejs-node-api'}) => {
         events
     };
 
-    require( './poll-for-dings.js' )( events, api );
+    if( poll ) {
+        require( './poll-for-dings.js' )( events, api );
+    }
 
     return api;
 

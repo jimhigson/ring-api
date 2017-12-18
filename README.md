@@ -1,10 +1,8 @@
 
-Promise-based wrapper around [doorbot](https://github.com/davglass/doorbot)
+Ring API
 ===
 
-Unofficial wrapper around [davglass](https://github.com/davglass)'s unofficial API for Ring doorbells and cameras.
-
-Also adds support for a few additional API endpoints and adds convenience methods to the response JSON.
+An unofficial, friendly Node.js API for [ring](http://ring.com) doorbells, cameras, etc
 
 usage
 ---
@@ -120,3 +118,11 @@ printHealth( devices.doorbots[0] );
 printHealth( devices.chimes[0] );
 printHealth( devices.stick_up_cams[0] );
 ```
+
+Thanks to
+-----
+
+* The [doorbot](https://github.com/davglass/doorbot) source for getting me started
+* [This python API](https://github.com/tchellomello/python-ring-doorbell)
+* [mitm proxy](https://mitmproxy.org)
+
