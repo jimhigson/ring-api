@@ -15,10 +15,10 @@ const hardware_id = require("crypto").randomBytes(16).toString("hex");
 
 module.exports = async ({email, password, userAgent = '@nodejs-node-api'}) => {
 
-
+    const events = new EventEmitter();
 
     const ringRequest = async reqData => {
-        logger( 'making token request', reqData );
+        logger( 'making ring api request', reqData );
 
         const responseJson = await request( reqData );
 
@@ -62,7 +62,11 @@ module.exports = async ({email, password, userAgent = '@nodejs-node-api'}) => {
         // delay copied from npm module doorbot - not sure what it is for
         await delay( 1500 );
 
-        return responseJson.profile.authentication_token;
+        const token = responseJson.profile.authentication_token;
+
+        logger( `have a new token for user ${email} ${token}` );
+
+        return token;
     };
 
     const authToken = await getAuthToken();
@@ -98,7 +102,7 @@ module.exports = async ({email, password, userAgent = '@nodejs-node-api'}) => {
         return responseJson;
     };
 
-    return {
+    const api = {
         devices: async () => {
 
             const devices = await authenticatedRequest( 'GET', apiUrls.devices() );
@@ -157,12 +161,28 @@ module.exports = async ({email, password, userAgent = '@nodejs-node-api'}) => {
             return history;
         },
 
-        activeDings: async () => authenticatedRequest( 'GET', apiUrls.dings().active() ),
+        activeDings: async () => {
+            const json = await authenticatedRequest( 'GET', apiUrls.dings().active() );
 
-        events: () => {
+            const parseDing = ding => {
+                ding.now = new Date( ding.now / 1000 )
+                // the JSON parser won't have parsed ding.id correctly because Javascript has problems with
+                // very large integers, so overwrite the failed parse with the string version that ring
+                // provide for us:
+                ding.id = ding.id_str;
+            };
 
-        }
+            json.forEach( parseDing );
+
+            return json;
+        },
+
+        events
     };
+
+    require( './poll-for-dings.js' )( events, api );
+
+    return api;
 
     /*
     const promisifyMethod = methodName => (...args) => new Promise( (resolve, reject) => {

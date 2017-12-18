@@ -5,14 +5,15 @@
   "main": "doorbot-promisified.js",
   "dependencies": {
     "colors": "^1.1.2",
-    "doorbot": "^3.0.1",
     "lodash.assign": "^4.2.0",
     "lodash.flatten": "^4.4.0",
     "request": "^2.83.0",
     "request-promise-native": "^1.0.5",
     "timeout-as-promise": "^1.0.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "time-constants": "^1.0.2"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

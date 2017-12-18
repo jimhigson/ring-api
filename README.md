@@ -9,6 +9,50 @@ Also adds support for a few additional API endpoints and adds convenience method
 usage
 ---
 
+Listening for activity on your ring devices
+---
+
+```js
+ringApi.events.on('activity', activity => console.log( 'there is a activity', activity ));
+```
+
+The event will be fired on rings and motion detected. To distinguish between then, use the activity.kind
+property.
+
+Where the activity object looks like:
+
+```js
+{
+   id: '6500907085284961754', // note - this will be a string - Javascript can't do large integers so well
+   id_str: '6500907085284961754', // same as id
+   state: 'ringing',
+   protocol: 'sip',
+   doorbot_id: 3861978, // id of the device that is ringing
+   doorbot_description: 'Back garden',
+   device_kind: 'hp_cam_v1',
+   motion: true,
+   snapshot_url: '',  // seems to always be blank
+   kind: 'motion',  // 'motion' or 'ring'
+   expires_in: 175,
+   now: Date, // js Date object
+   optimization_level: 1,
+
+   // various sip-related fields for the video:
+   sip_server_ip: '...',
+   sip_server_port: 15063,
+   sip_server_tls: true,
+   sip_session_id: '...',
+   sip_from: '...',
+   sip_to: '..',
+   audio_jitter_buffer_ms: 300,
+   video_jitter_buffer_ms: 300,
+   sip_endpoints: null,
+   sip_token: 'long hex token',
+   sip_ding_id: '6500907085284961754', // seems to always be the same as the id
+}
+```
+
+
 ```js
 // pass any options that doorbot accepts:
 const ring = require( 'doorbot-promisified' ) ( {
