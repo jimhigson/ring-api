@@ -9,6 +9,22 @@ Also adds support for a few additional API endpoints and adds convenience method
 usage
 ---
 
+```js
+// pass any options that doorbot accepts:
+const RingApi = require( 'ring-api' );
+const ringApi =  RingApi( {
+    email: 'you@example.com',
+    password: 'password you use on ring.com',
+
+    // OPTIONAL: any user agent you want to use default is github url of this project: 'http://github.com/jimhigson/ring-api'
+    userAgent: '',
+
+    // OPTIONAL: if true, will poll behind the scenes. Listening for events only works if this is on.
+    // true by default.
+    poll: true/false
+} );
+```
+
 Listening for activity on your ring devices
 ---
 
@@ -52,17 +68,13 @@ Where the activity object looks like:
 }
 ```
 
+Turning lights on and off
+----------------
 
 ```js
-// pass any options that doorbot accepts:
-const ring = require( 'doorbot-promisified' ) ( {
-    email: 'you@example.com',
-    password: 'password you use on ring.com'
-} );
+async function messWithMyLights() {
 
-async function useMyRing() {
-
-   const devices = await ring.devices();
+   const devices = await ringApi.devices();
 
    // lights on and off
    // -----------------
@@ -76,58 +88,35 @@ async function useMyRing() {
    await devices.stickup_cams[0].lightOff();
 
    console.log( 'ok, it\'s off' );
+};
+```
 
+Getting device history and videos
+-----------
 
-   // history and recordings
-   // ----------------------
+```js
+async function logMyRingHistory() {
 
-   const history = await ring.history();
+   const history = await ringApi.history();
    const videoUrl = await history[0].recording();
 
    console.log( 'latest video is at', videoUrl );
-
-
-   // getting device health
-   // ---------------------
-
-   function async printHealth( device ) {
-      const strength = (await device.health()).latest_signal_strength;
-      console.log( `${device.description} wifi strength is ${strength}` );
-   }
-
-   // asynchronously print the health of the first of each kind of device,
-   // without worrying about the order they are printed in:
-   printHealth( devices.doorbots[0] );
-   printHealth( devices.chimes[0] );
-   printHealth( devices.stick_up_cams[0] );
 };
-
-useMyRing();
 ```
 
-api
----
-
-`devices`, `history`, `recording`, `dings`, `lightOn`, `lightOff`, `lightToggle`, `simpleRequest` from doorbot
-are all exposed, but all wrapped to return promises.
-
-In addition, lights can be turned on and off using the lightOn, lightOff, lightToggle method
-on the camera object. Ie:
+getting device health
+---------------------
 
 ```js
-const devices = await ring.devices();
-await devices.stickup_cams[0].lightOff();
-```
+function async printHealth( device ) {
+   const strength = (await device.health()).latest_signal_strength;
+   console.log( `${device.description} wifi strength is ${strength}` );
+}
 
-and recordings of history items can be done in the same way:
-
-```js
-const history = await ring.history();
-const recordingUrl = await history[0].recording();
-```
-
-and device health:
-```js
-const devices = await ring.devices();
-await devices.stickup_cams[0].health();
+// asynchronously print the health of the first of each kind of device,
+// without worrying about the order they are printed in:
+const devices = await ringApi.devices();
+printHealth( devices.doorbots[0] );
+printHealth( devices.chimes[0] );
+printHealth( devices.stick_up_cams[0] );
 ```
