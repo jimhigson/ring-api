@@ -12,6 +12,7 @@ const EventEmitter = require('events');
 
 const isObject = require('lodash.isobject');
 const mapKeys = require('lodash.mapkeys');
+const first = require('lodash.first');
 
 const API_VERSION = 9;
 const hardware_id = require("crypto").randomBytes(16).toString("hex");
@@ -21,7 +22,6 @@ module.exports = async ({email, password, userAgent = 'github.com/jimhigson/ring
     const events = new EventEmitter();
 
     const ringRequest = async reqData => {
-        logger( 'making ring api request', reqData );
 
         reqData.transform = require( './parse-ring-json-responses' );
 
@@ -34,6 +34,8 @@ module.exports = async ({email, password, userAgent = 'github.com/jimhigson/ring
 
         reqData.qs = reqData.qs || {};
         reqData.qs.api_version = API_VERSION;
+
+        logger( 'making ring api request', reqData );
 
         const responseJson = await request( reqData );
 
@@ -145,7 +147,34 @@ module.exports = async ({email, password, userAgent = 'github.com/jimhigson/ring
 
             // note that the streams don't work yet:
             enhanceTypes( ['stickup_cams', 'doorbots'], (device) => {
-                device.liveStream = () => authenticatedRequest( 'POST', apiUrls.doorbots().device( device ).liveStream() );
+                device.liveStream = async () => {
+                    // TODO: experiment how many of these can be done in parallel
+                    await authenticatedRequest( 'POST', apiUrls.doorbots().device( device ).liveStream() );
+
+                    const waitForDing = async () => {
+                        // poll until the livestream is ready up to a maximum number of times
+                        const maxTries = 10;
+                        for( let tries = 0 ; tries < maxTries ; tries++ ) {
+
+                            logger( `waiting for ding, attempt ${tries}` );
+
+                            const liveStreamDing = first(
+                                await authenticatedRequest( 'GET', apiUrls.dings().active( {burst: true} ) )
+                            );
+
+                            if( liveStreamDing )
+                                return liveStreamDing;
+                        }
+
+                        if( !liveStreamDing ) {
+                            throw new Error( `could not get a ding for this livestream after ${maxTries} attempts` );
+                        }
+                    };
+
+                    const liveStreamDing = await waitForDing();
+
+                    return liveStreamDing;
+                }
             } );
 
             enhanceTypes( ['stickup_cams', 'doorbots', 'chimes'], (device, type) => {
