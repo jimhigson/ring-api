@@ -45,7 +45,7 @@ module.exports = assign( 'https://api.ring.com/clients_api', {
 
         ding: function( ding ) { return assign( `${this}/${ding.id}`, {
 
-            recording: function() { return `${this}/recording` }
+            recording: function() { return `${this}/recording?disable_redirect=true` }
         } ) },
 
         active: function() { return `${this}/active` }

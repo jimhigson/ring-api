@@ -10,6 +10,8 @@ const delay = require('timeout-as-promise');
 const logger = require('debug')('ring-api');
 const EventEmitter = require('events');
 
+const isObject = require('lodash.isobject');
+
 const API_VERSION = 9;
 const hardware_id = require("crypto").randomBytes(16).toString("hex");
 
@@ -19,6 +21,15 @@ module.exports = async ({email, password, userAgent = 'github.com/jimhigson/ring
 
     const ringRequest = async reqData => {
         logger( 'making ring api request', reqData );
+
+        reqData.transform = require( './parse-ring-json-responses' );
+
+        reqData.headers = reqData.headers || {};
+
+        if( isObject( reqData.body ) ) {
+            reqData.body = JSON.stringify( reqData.body );
+            reqData.headers['Content-type'] = 'application/json';
+        }
 
         const responseJson = await request( reqData );
 
@@ -48,7 +59,6 @@ module.exports = async ({email, password, userAgent = 'github.com/jimhigson/ring
             uri: apiUrls.session(),
             body : queryStringify( body ),
             headers,
-            json:true,
             method: 'POST'
         };
 
@@ -71,9 +81,7 @@ module.exports = async ({email, password, userAgent = 'github.com/jimhigson/ring
 
     const authToken = await getAuthToken();
 
-    logger( 'auth token is', authToken );
-
-    const authenticatedRequest = async (method, uri, transform) => {
+    const authenticatedRequest = async (method, uri) => {
 
         const body = {
             api_version: API_VERSION,
@@ -83,9 +91,7 @@ module.exports = async ({email, password, userAgent = 'github.com/jimhigson/ring
         const reqData = {
             method,
             uri,
-            body,
-            json:true,
-            transform
+            body
         };
 
         let responseJson;
@@ -150,12 +156,13 @@ module.exports = async ({email, password, userAgent = 'github.com/jimhigson/ring
             };
 
             history.forEach( historyItem => {
-                historyItem.recording = () =>
-                    authenticatedRequest(
+                historyItem.recordingUrl = async () => {
+                    const response = await authenticatedRequest(
                         'GET',
                         apiUrls.dings().ding( historyItem ).recording(),
-                        parseRecordingResponse
                     );
+                    return response.url;
+                };
             } );
 
             return history;
@@ -165,7 +172,7 @@ module.exports = async ({email, password, userAgent = 'github.com/jimhigson/ring
             const json = await authenticatedRequest( 'GET', apiUrls.dings().active() );
 
             const parseDing = ding => {
-                ding.now = new Date( ding.now / 1000 )
+                ding.now = new Date( ding.now / 1000 );
                 // the JSON parser won't have parsed ding.id correctly because Javascript has problems with
                 // very large integers, so overwrite the failed parse with the string version that ring
                 // provide for us:
