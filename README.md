@@ -95,7 +95,7 @@ Getting device history and videos
 async function logMyRingHistory() {
 
    const history = await ringApi.history();
-   const videoUrl = await history[0].recording();
+   const videoUrl = await history[0].videoUrl();
 
    console.log( 'latest video is at', videoUrl );
 };

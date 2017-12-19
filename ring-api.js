@@ -59,7 +59,8 @@ module.exports = async ({email, password, userAgent = 'github.com/jimhigson/ring
             uri: apiUrls.session(),
             body : queryStringify( body ),
             headers,
-            method: 'POST'
+            method: 'POST',
+            qs: {api_version: API_VERSION}
         };
 
         let responseJson;
@@ -156,7 +157,7 @@ module.exports = async ({email, password, userAgent = 'github.com/jimhigson/ring
             };
 
             history.forEach( historyItem => {
-                historyItem.recordingUrl = async () => {
+                historyItem.videoUrl = async () => {
                     const response = await authenticatedRequest(
                         'GET',
                         apiUrls.dings().ding( historyItem ).recording(),
