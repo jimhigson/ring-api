@@ -13,12 +13,13 @@ const ringApi =  RingApi( {
     email: 'you@example.com',
     password: 'password you use on ring.com',
 
-    // OPTIONAL: any user agent you want to use default is github url of this project: 'http://github.com/jimhigson/ring-api'
-    userAgent: '',
+    // OPTIONAL: any user agent you want to use default is the github
+    // url of this project: 'http://github.com/jimhigson/ring-api'
+    userAgent: 'http://github.com/jimhigson/ring-api',
 
-    // OPTIONAL: if true, will poll behind the scenes. Listening for events only works if this is on.
-    // true by default.
-    poll: true/false
+    // OPTIONAL: if true, will poll behind the scenes. Listening for
+    // events only works if this is on. True by default.
+    poll: true
 } );
 ```
 
@@ -26,7 +27,9 @@ Listening for activity on your ring devices
 ---
 
 ```js
-ringApi.events.on('activity', activity => console.log( 'there is a activity', activity ));
+const logActivity = activity => console.log( 'there is a activity', activity );
+
+ringApi.events.on('activity', logActivity);
 ```
 
 The event will be fired on rings and motion detected. To distinguish between then, use the activity.kind
@@ -36,7 +39,8 @@ Where the activity object looks like:
 
 ```js
 {
-   id: '6500907085284961754', // note - this will be a string - Javascript can't do large integers so well
+   // note - id will be a string - Javascript Number can't do large integers
+   id: '6500907085284961754',
    id_str: '6500907085284961754', // same as id
    state: 'ringing',
    protocol: 'sip',
