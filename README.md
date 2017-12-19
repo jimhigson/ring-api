@@ -4,6 +4,8 @@ Ring API
 
 An unofficial, friendly Node.js API for [ring](http://ring.com) doorbells, cameras, etc
 
+Promised-based and aims to gloss over as much of ring's API weirdness as possible
+
 usage
 ---
 
@@ -69,6 +71,26 @@ Where the activity object looks like:
 }
 ```
 
+Getting a list of devices
+------------
+
+```js
+// returns a promise
+ringApi.devices();
+```
+
+Where the promise will resolve to an object like:
+
+```js
+{
+   doorbells: [ /* array of doorbells */ ]
+   authorizedDoorbells: [], // not certain what this is for - please email if you know
+   chimes: [ /* array of chimes */ ],
+   cameras: [ /* array of cameras, floodlight cams, spotlight cams etc */ ] ],
+   baseStations: [] // presumably if you have a chime pro with the wifi hotspot built in?
+}
+```
+
 Turning lights on and off
 ----------------
 
@@ -77,18 +99,27 @@ async function messWithMyLights() {
 
    const devices = await ringApi.devices();
 
-   // lights on and off
-   // -----------------
-
    console.log( 'turning first cam light on' );
 
-   await devices.stickup_cams[0].lightOn();
+   // note that lightOn returns a promise
+   await devices.cameras[0].lightOn();
 
    console.log( 'light on now, let\'s turn it off again' );
 
-   await devices.stickup_cams[0].lightOff();
+   await devices.cameras[0].lightOff();
 
    console.log( 'ok, it\'s off' );
+
+   console.log( 'let\'s turn on all the lights!' );
+
+   // with the magic of promises we can turn all on asynchronously
+   await Promise.all( devices.cameras.map( c => c.lightOn() ) );
+
+   console.log( 'all your cameras are on!');
+
+   await Promise.all( devices.cameras.map( c => c.lightOff() ) );
+
+   console.log( 'they\'re all off again!');
 };
 ```
 

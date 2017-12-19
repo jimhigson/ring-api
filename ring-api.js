@@ -11,6 +11,7 @@ const logger = require('debug')('ring-api');
 const EventEmitter = require('events');
 
 const isObject = require('lodash.isobject');
+const mapKeys = require('lodash.mapkeys');
 
 const API_VERSION = 9;
 const hardware_id = require("crypto").randomBytes(16).toString("hex");
@@ -30,6 +31,9 @@ module.exports = async ({email, password, userAgent = 'github.com/jimhigson/ring
             reqData.body = JSON.stringify( reqData.body );
             reqData.headers['Content-type'] = 'application/json';
         }
+
+        reqData.qs = reqData.qs || {};
+        reqData.qs.api_version = API_VERSION;
 
         const responseJson = await request( reqData );
 
@@ -59,8 +63,7 @@ module.exports = async ({email, password, userAgent = 'github.com/jimhigson/ring
             uri: apiUrls.session(),
             body : queryStringify( body ),
             headers,
-            method: 'POST',
-            qs: {api_version: API_VERSION}
+            method: 'POST'
         };
 
         let responseJson;
@@ -109,6 +112,19 @@ module.exports = async ({email, password, userAgent = 'github.com/jimhigson/ring
         return responseJson;
     };
 
+    // ring has strange names for things, replace them with more intuitive names for device types:
+    const makeDevicesListFriendlier = input => {
+
+        const keyReplacements = {
+            doorbots: 'doorbells',
+            authorized_doorbots: 'authorisedDoorbells',
+            stickup_cams: 'cameras',
+            base_stations: 'baseStations'
+        };
+
+        return mapKeys( input, (_, key) => keyReplacements[ key ] || key );
+    };
+
     const api = {
         devices: async () => {
 
@@ -129,7 +145,7 @@ module.exports = async ({email, password, userAgent = 'github.com/jimhigson/ring
 
             // note that the streams don't work yet:
             enhanceTypes( ['stickup_cams', 'doorbots'], (device) => {
-                device.stream = () => authenticatedRequest( 'POST', apiUrls.doorbots().device( device ).stream() );
+                device.liveStream = () => authenticatedRequest( 'POST', apiUrls.doorbots().device( device ).liveStream() );
             } );
 
             enhanceTypes( ['stickup_cams', 'doorbots', 'chimes'], (device, type) => {
@@ -146,7 +162,7 @@ module.exports = async ({email, password, userAgent = 'github.com/jimhigson/ring
                 device.health = () => authenticatedRequest( 'GET', healthEndpoint );
             } );
 
-            return devices;
+            return makeDevicesListFriendlier( devices );
         },
 
         history: async () => {
