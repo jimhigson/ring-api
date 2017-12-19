@@ -15,6 +15,7 @@
     "lodash.mapkeys": "^4.6.0",
     "request": "^2.83.0",
     "request-promise-native": "^1.0.5",
+    "sip.js": "^0.9.1",
     "time-constants": "^1.0.2",
     "timeout-as-promise": "^1.0.0"
   },

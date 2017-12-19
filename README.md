@@ -136,6 +136,16 @@ async function logMyRingHistory() {
 };
 ```
 
+starting a livestream
+--------------------
+
+So far this only works so far as getting the SIP details of the stream. To get this, can do:
+```js
+// returns a promise that will resolve to the livestream SIP information:
+devices.doorbells[0].liveStream();
+```
+
+
 getting device health
 ---------------------
 
@@ -148,9 +158,9 @@ function async printHealth( device ) {
 // asynchronously print the health of the first of each kind of device,
 // without worrying about the order they are printed in:
 const devices = await ringApi.devices();
-printHealth( devices.doorbots[0] );
+printHealth( devices.doorbells[0] );
 printHealth( devices.chimes[0] );
-printHealth( devices.stick_up_cams[0] );
+printHealth( devices.cameras[0] );
 ```
 
 Thanks to
