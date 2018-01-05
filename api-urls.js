@@ -48,7 +48,7 @@ module.exports = assign( 'https://api.ring.com/clients_api', {
             recording: function() { return `${this}/recording?disable_redirect=true` }
         } ) },
 
-        active: function( {burst=false} ) { return `${this}/active?burst=${burst}` }
+        active: function( {burst=false}={burst:false} ) { return `${this}/active?burst=${burst}` }
     } ) },
 
     chimes: function() { return assign( `${this}/chimes`, {

@@ -2,8 +2,10 @@
 
 const apiUrls = require('./api-urls');
 const restClient = require( './rest-client' );
+const logger = require('debug')('ring-api');
 
-module.exports = async ( {burst = false} ) => {
+module.exports = async ( {burst = false} = { burst: false } ) => {
+
     const dings = await restClient.authenticatedRequest( 'GET', apiUrls.dings().active( {burst} ) );
 
     const parseDing = ding => {
