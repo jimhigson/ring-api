@@ -4,7 +4,8 @@ Ring API
 
 An unofficial, friendly Node.js API for [ring](http://ring.com) doorbells, cameras, etc
 
-Promised-based and aims to gloss over as much of ring's API weirdness as possible
+Promised-based and aims to gloss over as much of ring's API weirdness as possible and hide the polling behind
+events
 
 usage
 ---
@@ -39,7 +40,7 @@ property.
 
 Where the activity object looks like:
 
-```js
+```json
 {
    // note - id will be a string - Javascript Number can't do large integers
    id: '6500907085284961754',
@@ -81,7 +82,7 @@ ringApi.devices();
 
 Where the promise will resolve to an object like:
 
-```js
+```json
 {
    doorbells: [ /* array of doorbells */ ]
    authorizedDoorbells: [], // not certain what this is for - please email if you know
@@ -95,6 +96,8 @@ Turning lights on and off
 ----------------
 
 ```js
+const prompt = require('node-ask').prompt;
+
 async function messWithMyLights() {
 
    const devices = await ringApi.devices();
@@ -104,7 +107,8 @@ async function messWithMyLights() {
    // note that lightOn returns a promise
    await devices.cameras[0].lightOn();
 
-   console.log( 'light on now, let\'s turn it off again' );
+   await prompt( 'all your lights are now on, hit return to turn them off' ); 
+   console.log( 'let\'s turn it off again' );
 
    await devices.cameras[0].lightOff();
 
@@ -130,9 +134,13 @@ Getting device history and videos
 async function logMyRingHistory() {
 
    const history = await ringApi.history();
-   const videoUrl = await history[0].videoUrl();
+   const firstVideoUrl = await history[0].videoUrl();
 
-   console.log( 'latest video is at', videoUrl );
+   console.log( 'latest video is at', firstVideoUrl );
+   
+   const allRecentVideos = Promise.all( history.map( h => h.videoUrl() ) );
+   
+   console.log( 'list of all recent videos:', await allRecentVideos );   
 };
 ```
 

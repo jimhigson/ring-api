@@ -28,7 +28,7 @@ const waitForDing = async () => {
 
 module.exports = async (device) => {
     // TODO: experiment how many of these can be done in parallel
-    await restClient.makeRequest( 'POST', apiUrls.doorbots().device( device ).liveStream() );
+    await restClient.authenticatedRequest( 'POST', apiUrls.doorbots().device( device ).liveStream() );
 
     const liveStreamDing = await waitForDing();
 

@@ -30,7 +30,7 @@ module.exports = ({email, password, userAgent = 'github.com/jimhigson/ring-api',
     const api = {
         devices: async () => {
 
-            const devices = await restClient.makeRequest( 'GET', apiUrls.devices() );
+            const devices = await restClient.authenticatedRequest( 'GET', apiUrls.devices() );
 
             const enhanceTypes = ( typesList, enhancer ) => {
                 typesList.forEach( type => {
@@ -41,8 +41,8 @@ module.exports = ({email, password, userAgent = 'github.com/jimhigson/ring-api',
 
             enhanceTypes( ['stickup_cams'], (device) => {
                 const deviceUri = apiUrls.doorbots().device( device );
-                device.lightOn = () => restClient.makeRequest( 'PUT', deviceUri.lightOn() );
-                device.lightOff = () => restClient.makeRequest( 'PUT', deviceUri.lightOff() );
+                device.lightOn = () => restClient.authenticatedRequest( 'PUT', deviceUri.lightOn() );
+                device.lightOff = () => restClient.authenticatedRequest( 'PUT', deviceUri.lightOff() );
             } );
 
             enhanceTypes( ['stickup_cams', 'doorbots'], (device) => {
@@ -61,7 +61,7 @@ module.exports = ({email, password, userAgent = 'github.com/jimhigson/ring-api',
                 const healthEndpoint = apiUrls[kludgedType]().device( device ).health();
 
                 device.health = async () => {
-                    const health = (await restClient.makeRequest( 'GET', healthEndpoint )).device_health;
+                    const health = (await restClient.authenticatedRequest( 'GET', healthEndpoint )).device_health;
 
                     health.updated_at = new Date( health.updated_at );
 
@@ -73,15 +73,11 @@ module.exports = ({email, password, userAgent = 'github.com/jimhigson/ring-api',
         },
 
         history: async () => {
-            const history = await restClient.makeRequest( 'GET', apiUrls.doorbots().history() );
-
-            const parseRecordingResponse = (body, res) => {
-                return res.headers.location;
-            };
+            const history = await restClient.authenticatedRequest( 'GET', apiUrls.doorbots().history() );
 
             history.forEach( historyItem => {
                 historyItem.videoUrl = async () => {
-                    const response = await restClient.makeRequest(
+                    const response = await restClient.authenticatedRequest(
                         'GET',
                         apiUrls.dings().ding( historyItem ).recording(),
                     );

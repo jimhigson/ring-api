@@ -5,10 +5,10 @@ const jsonBigIntParse = require('json-bigint')({"storeAsString": true}).parse;
 
 const propagatedError = require( './propagated-error' );
 
-const isJson = response => {
+const isJson = headers => {
     try {
 
-        const contentTypeHeader = response.headers['content-type'];
+        const contentTypeHeader = headers['content-type'];
 
         if( !contentTypeHeader )
             return false;
@@ -22,22 +22,22 @@ const isJson = response => {
     }
 };
 
-module.exports = (body, response, resolveWithFullResponse) => {
+module.exports = (responseBody, headers) => {
 
-    if ( isJson( response ) ) {
+    if ( isJson( headers ) ) {
 
         try {
             // Some of the ring endpoints return an empty response (but not a 204 status code) while claiming
             // to be JSON. In this case, trying to parse the empty string as json will fail.
             // To avoid the failure, return an empty object
-            if( !body.length ) {
+            if( !responseBody.length ) {
                 return {};
             }
 
-            return jsonBigIntParse(body);
+            return jsonBigIntParse(responseBody);
         } catch ( e ) {
-            throw propagatedError( `invalid json in response: ${response}`, e );
+            throw propagatedError( `invalid json in response: ${responseBody}`, e );
         }
     }else
-        return body;
+        return responseBody;
 };

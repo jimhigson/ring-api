@@ -4,6 +4,7 @@
   "description": "Unofficial API for ring doorbells and other devices",
   "main": "ring-api.js",
   "dependencies": {
+    "axios": "^0.17.1",
     "colors": "^1.1.2",
     "content-type": "^1.0.4",
     "debug": "^3.1.0",
@@ -13,8 +14,6 @@
     "lodash.flatten": "^4.4.0",
     "lodash.isobject": "^3.0.2",
     "lodash.mapkeys": "^4.6.0",
-    "request": "^2.83.0",
-    "request-promise-native": "^1.0.5",
     "sip.js": "^0.9.1",
     "time-constants": "^1.0.2",
     "timeout-as-promise": "^1.0.0"
@@ -23,5 +22,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Jim Higson",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "node-ask": "^1.0.1"
+  }
 }
