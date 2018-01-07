@@ -22,7 +22,7 @@ const assign = require( 'lodash.assign' );
 
 */
 
-module.exports = assign( 'https://api.ring.com/clients_api', {
+module.exports = serverRoot => assign( '' + serverRoot, {
 
     session: function() { return `${this}/session` },
 

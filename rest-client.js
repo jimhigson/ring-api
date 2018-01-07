@@ -8,7 +8,6 @@ const delay = require('timeout-as-promise');
 const isObject = require('lodash.isobject');
 const propagatedError = require( './propagated-error' );
 const queryStringify = require('querystring').stringify;
-const sessionUrl = require('./api-urls').session();
 
 const logger = require('debug')('ring-api');
 
@@ -44,7 +43,7 @@ const ringRequest = async reqData => {
 };
 
 
-module.exports = {
+module.exports = apiUrls => ({
     authenticate: async ({email, password, userAgent}) => {
         try{
             const reqBodyData = {
@@ -62,7 +61,7 @@ module.exports = {
             };
 
             const reqData = {
-                url: sessionUrl,
+                url: apiUrls.session(),
                 data : queryStringify( reqBodyData ),
                 headers,
                 method: 'POST'
@@ -111,4 +110,4 @@ module.exports = {
 
         return responseJson;
     }
-};
+});

@@ -1,8 +1,5 @@
 'use strict';
 
-const apiUrls = require('./api-urls');
-const restClient = require( './rest-client' );
-
 const emojis = {
     motion: '🏃',
     ding: '🛎',
@@ -24,14 +21,14 @@ function parseDate( dateStr ) {
     return date;
 }
 
-module.exports = async () => {
-    const historyItems = await restClient.authenticatedRequest( 'GET', apiUrls.doorbots().history() );
+module.exports = api => async () => {
+    const historyItems = await api.restClient.authenticatedRequest( 'GET', api.apiUrls.doorbots().history() );
 
     historyItems.forEach( historyItem => {
         historyItem.videoUrl = async () => {
-            const response = await restClient.authenticatedRequest(
+            const response = await api.restClient.authenticatedRequest(
                 'GET',
-                apiUrls.dings().ding( historyItem ).recording(),
+                api.apiUrls.dings().ding( historyItem ).recording(),
             );
             return response.url;
         };

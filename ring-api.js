@@ -1,31 +1,42 @@
-'use strict';
+'use strict'
 
-const apiUrls = require('./api-urls');
-const restClient = require( './rest-client' );
+const logger = require('debug')('ring-api')
+const EventEmitter = require('events')
+const assign = require('lodash.assign')
 
-const logger = require('debug')('ring-api');
-const EventEmitter = require('events');
+module.exports = ({
+  email,
+  password,
+  userAgent = 'github.com/jimhigson/ring-api',
+  poll = true,
+  serverRoot = 'https://api.ring.com/clients_api'}) => {
 
-module.exports = ({email, password, userAgent = 'github.com/jimhigson/ring-api', poll = true}) => {
+  const events = new EventEmitter()
 
-    const events = new EventEmitter();
+  const apiUrls = require('./api-urls')(serverRoot)
 
-    restClient.authenticate( {email, password, userAgent} );
+  const restClient = require('./rest-client')(apiUrls)
 
-    const api = {
-        devices: require( './get-devices-list' ),
+  restClient.authenticate({email, password, userAgent})
 
-        history: require( './get-history-list' ),
+  const api = {
+    events,
+    apiUrls,
+    restClient
+  }
 
-        activeDings: require( './get-active-dings' ),
+  assign( api, {
+    devices: require('./get-devices-list')(api),
 
-        events
-    };
+    history: require('./get-history-list')(api),
 
-    if( poll ) {
-        require( './poll-for-dings.js' )( events, api );
-    }
+    activeDings: require('./get-active-dings')(api),
+  })
 
-    return api;
-};
+  if (poll) {
+    require('./poll-for-dings.js')(api)
+  }
+
+  return api
+}
 

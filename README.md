@@ -18,11 +18,21 @@ const ringApi =  RingApi( {
 
     // OPTIONAL: any user agent you want to use default is the github
     // url of this project: 'http://github.com/jimhigson/ring-api'
-    userAgent: 'http://github.com/jimhigson/ring-api',
+    // note that this wont be used if running in a browser because this header
+    // is considered unsafe
+    userAgent: 'any string',
 
     // OPTIONAL: if true, will poll behind the scenes. Listening for
     // events only works if this is on. True by default.
-    poll: true
+    poll: true,
+    
+    // OPTIONAL
+    // Set this if you need to run in a browser behind a proxy, for example
+    // to get around x-origin request restrictions. Ring don't have CORS headers.
+    // once set, all requests will be made relative to this value
+    // default is 'https://api.ring.com/clients_api'
+    // If running in node, you almost certainly want to leave this out
+    serverRoot: 'http://example.com'
 } );
 ```
 

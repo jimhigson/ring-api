@@ -20,11 +20,14 @@
     "timeout-as-promise": "^1.0.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix ."
   },
   "author": "Jim Higson",
   "license": "ISC",
   "devDependencies": {
+    "eslint": "^4.15.0",
+    "eslint-config-idiomatic": "^4.0.0",
     "node-ask": "^1.0.1"
   }
 }
