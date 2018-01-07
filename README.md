@@ -13,6 +13,10 @@ usage
 ```js
 const RingApi = require( 'ring-api' );
 const ringApi =  RingApi( {
+
+    // note - that the email and password can also be given by setting the RING_USER 
+    // and RING_PASSWORD environment variables. This is better if you want to keep
+    // passwords out of your source code
     email: 'you@example.com',
     password: 'password you use on ring.com',
 

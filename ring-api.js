@@ -5,11 +5,18 @@ const EventEmitter = require( 'events' )
 const assign = require( 'lodash.assign' )
 
 module.exports = ({
-    email,
-    password,
+    email = process.env.RING_USER,
+    password = process.env.RING_PASSWORD,
     userAgent = 'github.com/jimhigson/ring-api',
     poll = true,
     serverRoot = 'https://api.ring.com/clients_api' }) => {
+
+    if ( !email || !password ) {
+        throw new Error(
+            'no username or password given. Either pass this in when creating' +
+            'a ring-api instance, or set the RING_USER and RING_PASSWORD environment variables'
+        )
+    }
 
     const events = new EventEmitter()
 

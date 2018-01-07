@@ -28,7 +28,9 @@ function deviceToString() {
     return `[ ${emojis[ this.kind ] || this.kind} "${this.description}" ]`
 }
 
-module.exports = ({ restClient, apiUrls }) => async() => {
+module.exports = api => async() => {
+
+    const { restClient, apiUrls } = api
 
     const getLiveStream = require( './get-live-stream' )( api )
     const rawDeviceList = await restClient.authenticatedRequest( 'GET', apiUrls.devices())
