@@ -1,34 +1,37 @@
 'use strict'
 
-const logger = require('debug')('ring-api')
+const logger = require( 'debug' )( 'ring-api' )
 
-module.exports = api => async (device) => {
+module.exports = api => async device => {
 
-  const getActiveDings = require('./get-active-dings')(api)
+    const { restClient, apiUrls } = api
+    const getActiveDings = require( './get-active-dings' )( api )
 
-  const first = require('lodash.first')
-  const maxTries = 10
+    const first = require( 'lodash.first' )
+    const maxTries = 10
 
-  const waitForDing = async () => {
+    const waitForDing = async() => {
 
     // poll until the livestream is ready up to a maximum number of times
-    for (let tries = 0; tries < maxTries; tries++) {
+        for ( let tries = 0; tries < maxTries; tries++ ) {
 
-      logger(`waiting for ding, attempt ${tries}`)
+            logger( `waiting for ding, attempt ${tries}` )
 
-      const dings = await getActiveDings({burst: true})
+            const dings = await getActiveDings({ burst: true })
 
-      const liveStreamDing = first(dings)
+            const liveStreamDing = first( dings )
 
-      if (liveStreamDing)
-        return liveStreamDing
+            if ( liveStreamDing ) {
+                return liveStreamDing
+            }
+        }
+
+        throw new Error( `could not get a ding for this livestream after ${maxTries} attempts` )
     }
 
-    throw new Error(`could not get a ding for this livestream after ${maxTries} attempts`)
-  }
+    // create a new live stream:
+    const liveStreamUrl = apiUrls.doorbots().device( device ).liveStream()
+    await restClient.authenticatedRequest( 'POST', liveStreamUrl )
 
-  // create a new live stream:
-  await api.restClient.authenticatedRequest('POST', api.apiUrls.doorbots().device(device).liveStream())
-
-  return waitForDing()
+    return waitForDing()
 }

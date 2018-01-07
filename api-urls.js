@@ -1,6 +1,6 @@
-'use strict';
+'use strict'
 
-const assign = require( 'lodash.assign' );
+const assign = require( 'lodash.assign' )
 
 /*
 
@@ -24,39 +24,71 @@ const assign = require( 'lodash.assign' );
 
 module.exports = serverRoot => assign( '' + serverRoot, {
 
-    session: function() { return `${this}/session` },
+    session() {
+        return `${this}/session`
+    },
 
-    devices: function() { return `${this}/ring_devices` },
+    devices() {
+        return `${this}/ring_devices`
+    },
 
-    doorbots: function() { return assign( `${this}/doorbots`, {
+    doorbots() {
+        return assign( `${this}/doorbots`, {
 
-        device: function( device ) { return assign( `${this}/${device.id}`, {
+            device( device ) {
+                return assign( `${this}/${device.id}`, {
 
-            lightOn: function() { return `${this}/floodlight_light_on` },
-            lightOff: function() { return `${this}/floodlight_light_off` },
-            liveStream: function() { return `${this}/vod` },
-            health: function() { return `${this}/health` }
-        } ) },
+                    lightOn() {
+                        return `${this}/floodlight_light_on`
+                    },
+                    lightOff() {
+                        return `${this}/floodlight_light_off`
+                    },
+                    liveStream() {
+                        return `${this}/vod`
+                    },
+                    health() {
+                        return `${this}/health`
+                    }
+                })
+            },
 
-        history: function() { return `${this}/history` }
-    } ) },
+            history() {
+                return `${this}/history`
+            }
+        })
+    },
 
-    dings: function() { return assign( `${this}/dings`, {
+    dings() {
+        return assign( `${this}/dings`, {
 
-        ding: function( ding ) { return assign( `${this}/${ding.id}`, {
+            ding( ding ) {
+                return assign( `${this}/${ding.id}`, {
 
-            recording: function() { return `${this}/recording?disable_redirect=true` }
-        } ) },
+                    recording() {
+                        return `${this}/recording?disable_redirect=true`
+                    }
+                })
+            },
 
-        active: function( {burst=false}={burst:false} ) { return `${this}/active?burst=${burst}` }
-    } ) },
+            active({ burst = false } = { burst: false }) {
+                return `${this}/active?burst=${burst}`
+            }
+        })
+    },
 
-    chimes: function() { return assign( `${this}/chimes`, {
+    chimes() {
+        return assign( `${this}/chimes`, {
 
-        device: function( device ) { return assign( `${this}/${device.id}`, {
-            health: function() { return `${this}/health` }
-        } ) },
+            device( device ) {
+                return assign( `${this}/${device.id}`, {
+                    health() {
+                        return `${this}/health`
+                    }
+                })
+            },
 
-    } ) }
+        })
+    }
 
-} );
+})

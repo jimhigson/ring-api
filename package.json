@@ -26,6 +26,7 @@
   "author": "Jim Higson",
   "license": "ISC",
   "devDependencies": {
+    "babel-eslint": "^8.1.2",
     "eslint": "^4.15.0",
     "eslint-config-idiomatic": "^4.0.0",
     "node-ask": "^1.0.1"

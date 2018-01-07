@@ -1,113 +1,114 @@
-'use strict';
+'use strict'
 
-const API_VERSION = 9;
-const hardware_id = require("crypto").randomBytes(16).toString("hex");
+const API_VERSION = 9
+const hardware_id = require( 'crypto' ).randomBytes( 16 ).toString( 'hex' )
 
-const axios = require('axios');
-const delay = require('timeout-as-promise');
-const isObject = require('lodash.isobject');
-const propagatedError = require( './propagated-error' );
-const queryStringify = require('querystring').stringify;
+const axios = require( 'axios' )
+const delay = require( 'timeout-as-promise' )
+const isObject = require( 'lodash.isobject' )
+const propagatedError = require( './propagated-error' )
+const queryStringify = require( 'querystring' ).stringify
 
-const logger = require('debug')('ring-api');
+const logger = require( 'debug' )( 'ring-api' )
 
-let tokenResolve;
-let tokenReject;
-// this promise will be resolved when the token is available - some time after authenticate is called
-const tokenPromise = new Promise( ( resolve, reject ) => {
-    tokenResolve = resolve;
-    tokenReject = reject;
-} );
+let tokenResolve
+let tokenReject
+// this promise will be resolved when the token is available - some time after authenticate
+// is called
+const tokenPromise = new Promise(( resolve, reject ) => {
+    tokenResolve = resolve
+    tokenReject = reject
+})
 
 const ringRequest = async reqData => {
 
-    reqData.transformResponse = [require( './parse-ring-json-responses' )];
+    reqData.transformResponse = [ require( './parse-ring-json-responses' ) ]
 
-    reqData.headers = reqData.headers || {};
+    reqData.headers = reqData.headers || {}
 
-    if( isObject( reqData.data ) ) {
-        reqData.data = JSON.stringify( reqData.data );
-        reqData.headers['Content-type'] = 'application/json';
+    if ( isObject( reqData.data )) {
+        reqData.data = JSON.stringify( reqData.data )
+        reqData.headers[ 'Content-type' ] = 'application/json'
     }
 
-    reqData.params = reqData.params || {};
-    reqData.params.api_version = API_VERSION;
+    reqData.params = reqData.params || {}
+    reqData.params.api_version = API_VERSION
 
-    logger( 'making ring api request', reqData );
+    logger( 'making ring api request', reqData )
 
-    const responseJson = await axios( reqData );
+    const responseJson = await axios( reqData )
 
-    logger( 'got response', responseJson );
+    logger( 'got response', responseJson )
 
-    return responseJson.data;
-};
+    return responseJson.data
+}
 
 
 module.exports = apiUrls => ({
-    authenticate: async ({email, password, userAgent}) => {
-        try{
+    authenticate: async({ email, password, userAgent }) => {
+        try {
             const reqBodyData = {
                 username: email,
                 password,
                 'device[os]': 'ios',
                 'device[hardware_id]': hardware_id,
                 api_version: API_VERSION
-            };
+            }
 
             const headers = {
-                Authorization: 'Basic ' + new Buffer(email + ':' + password).toString('base64'),
+                Authorization: 'Basic ' + new Buffer( email + ':' + password ).toString( 'base64' ),
                 'content-type': 'application/x-www-form-urlencoded',
                 'user-agent': userAgent
-            };
+            }
 
             const reqData = {
                 url: apiUrls.session(),
-                data : queryStringify( reqBodyData ),
+                data: queryStringify( reqBodyData ),
                 headers,
                 method: 'POST'
-            };
+            }
 
-            const responseJson = await ringRequest( reqData );
+            const responseJson = await ringRequest( reqData )
 
             // delay copied from npm module doorbot - not sure what it is for
-            await delay( 1500 );
+            await delay( 1500 )
 
-            const token = responseJson.profile.authentication_token;
+            const token = responseJson.profile.authentication_token
 
-            logger( `have a new token for user ${email} ${token}` );
+            logger( `have a new token for user ${email} ${token}` )
 
-            tokenResolve( token );
+            tokenResolve( token )
         } catch ( e ) {
-            tokenReject(propagatedError( `problem getting token for user ${email}`, e ));
-            throw propagatedError( `problem getting token for user ${email}`, e );
+            tokenReject( propagatedError( `problem getting token for user ${email}`, e ))
+            throw propagatedError( `problem getting token for user ${email}`, e )
         }
     },
-    authenticatedRequest: async (method, url) => {
+    authenticatedRequest: async( method, url ) => {
 
         const reqBodyData = {
             api_version: API_VERSION,
-            // if a token has been gotten already, awaiting on tokenPromise will return very quickly,
-            // otherwise will wait until we have a token to do this:
+            // if a token has been gotten already, awaiting on tokenPromise will return very
+            // quickly, otherwise will wait until we have a token to do this:
             auth_token: await tokenPromise
-        };
+        }
 
         const reqData = {
             method,
             url,
             data: reqBodyData
-        };
-
-        let responseJson;
-        try{
-            responseJson = await ringRequest( reqData );
-        } catch( e ) {
-            throw propagatedError( `problem ${method}ing endpoint ${url}`, e );
         }
 
-        if( responseJson && responseJson.error ) {
-            throw new Error( `error in API response ${responseJson.error}` );
+        let responseJson
+        try {
+            responseJson = await ringRequest( reqData )
+        } catch ( e ) {
+            throw propagatedError( `problem ${method}ing endpoint ${url}`, e )
         }
 
-        return responseJson;
+        if ( responseJson && responseJson.error ) {
+            throw new Error( `error in API response ${responseJson.error}` )
+        }
+
+        return responseJson
     }
-});
+})

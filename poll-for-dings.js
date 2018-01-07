@@ -1,20 +1,20 @@
-'use strict';
+'use strict'
 
-const SECOND = require('time-constants').SECOND;
-const logger = require('debug')('ring-api');
+const SECOND = require( 'time-constants' ).SECOND
+const logger = require( 'debug' )( 'ring-api' )
 
 // polling every five seconds seems to be the rate the ring app uses:
-const POLL_FREQUENCY = 5 * SECOND;
+const POLL_FREQUENCY = 5 * SECOND
 
-module.exports = function( api ) {
+module.exports = api => {
 
-    const poll = async () => {
-        const dings = await api.activeDings();
+    const poll = async() => {
+        const dings = await api.activeDings()
 
-        logger( `polling found ${dings.length} active dings`, dings );
+        logger( `polling found ${dings.length} active dings`, dings )
 
-        dings.forEach( ding => api.events.emit( 'activity', ding ) );
-    };
+        dings.forEach( ding => api.events.emit( 'activity', ding ))
+    }
 
-    setInterval( poll, POLL_FREQUENCY );
-};
+    setInterval( poll, POLL_FREQUENCY )
+}
