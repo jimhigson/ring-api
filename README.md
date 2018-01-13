@@ -54,7 +54,7 @@ property.
 
 Where the activity object looks like:
 
-```json
+```js
 {
    // note - id will be a string - Javascript Number can't do large integers
    id: '6500907085284961754',
@@ -96,7 +96,7 @@ ringApi.devices();
 
 Where the promise will resolve to an object like:
 
-```json
+```js
 {
    doorbells: [ /* array of doorbells */ ]
    authorizedDoorbells: [], // not certain what this is for - please email if you know
