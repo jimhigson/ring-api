@@ -112,33 +112,24 @@ Turning lights on and off
 ```js
 const prompt = require('node-ask').prompt;
 
-async function messWithMyLights() {
+async function lightsOnAndOff() {
 
    const devices = await ringApi.devices();
 
-   console.log( 'turning first cam light on' );
+   console.log( `turning on all lights` );
 
-   // note that lightOn returns a promise
-   await devices.cameras[0].lightOn();
-
-   await prompt( 'all your lights are now on, hit return to turn them off' ); 
-   console.log( 'let\'s turn it off again' );
-
-   await devices.cameras[0].lightOff();
-
-   console.log( 'ok, it\'s off' );
-
-   console.log( 'let\'s turn on all the lights!' );
-
-   // with the magic of promises we can turn all on asynchronously
+   // note that .lightOn() returns a promise
+   // with the magic of promises we can turn them all on asynchronously
    await Promise.all( devices.cameras.map( c => c.lightOn() ) );
 
-   console.log( 'all your cameras are on!');
+   await prompt( 'all your lights are now on, hit return to turn them off' ); 
 
    await Promise.all( devices.cameras.map( c => c.lightOff() ) );
 
    console.log( 'they\'re all off again!');
 };
+
+lightsOnAndOff();
 ```
 
 Getting device history and videos
@@ -172,7 +163,7 @@ getting device health
 ---------------------
 
 ```js
-function async printHealth( device ) {
+async function printHealth( device ) {
    const strength = (await device.health()).latest_signal_strength;
    console.log( `${device.description} wifi strength is ${strength}` );
 }
