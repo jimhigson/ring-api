@@ -13,7 +13,7 @@ module.exports = ({
 
     if ( !email || !password ) {
         throw new Error(
-            'no username or password given. Either pass this in when creating' +
+            'no username or password given. Either pass this in when creating ' +
             'a ring-api instance, or set the RING_USER and RING_PASSWORD environment variables'
         )
     }

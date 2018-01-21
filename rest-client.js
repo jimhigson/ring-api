@@ -46,6 +46,7 @@ const ringRequest = async reqData => {
 
 module.exports = apiUrls => ({
     authenticate: async({ email, password, userAgent }) => {
+        const sessionApiUrl = apiUrls.session()
         try {
             const reqBodyData = {
                 username: email,
@@ -62,7 +63,7 @@ module.exports = apiUrls => ({
             }
 
             const reqData = {
-                url: apiUrls.session(),
+                url: sessionApiUrl,
                 data: queryStringify( reqBodyData ),
                 headers,
                 method: 'POST'
@@ -78,9 +79,14 @@ module.exports = apiUrls => ({
             logger( `have a new token for user ${email} ${token}` )
 
             tokenResolve( token )
-        } catch ( e ) {
-            tokenReject( propagatedError( `problem getting token for user ${email}`, e ))
-            throw propagatedError( `problem getting token for user ${email}`, e )
+        } catch ( upstreamError ) {
+
+            const errorMessage = `problem getting token for user ${email} from URL ${sessionApiUrl}`
+            const downstreamError = propagatedError(
+                errorMessage,
+                upstreamError
+            );
+            tokenReject( downstreamError )
         }
     },
     authenticatedRequest: async( method, url ) => {
