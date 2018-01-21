@@ -1,37 +1,41 @@
 'use strict'
 
-const logger = require( 'debug' )( 'ring-api' )
+module.exports = bottle => bottle.service( 'getLiveStream', getLiveStream,
+    'restClient',
+    'apiUrls',
+    'getActiveDings',
+    'logger'
+)
 
-module.exports = api => async device => {
+function getLiveStream( restClient, apiUrls, getActiveDings, logger ) {
+    return async device => {
 
-    const { restClient, apiUrls } = api
-    const getActiveDings = require( './get-active-dings' )( api )
+        const first = require( 'lodash.first' )
+        const maxTries = 10
 
-    const first = require( 'lodash.first' )
-    const maxTries = 10
+        const waitForDing = async() => {
 
-    const waitForDing = async() => {
+        // poll until the livestream is ready up to a maximum number of times
+            for ( let tries = 0; tries < maxTries; tries++ ) {
 
-    // poll until the livestream is ready up to a maximum number of times
-        for ( let tries = 0; tries < maxTries; tries++ ) {
+                logger( `waiting for ding, attempt ${tries}` )
 
-            logger( `waiting for ding, attempt ${tries}` )
+                const dings = await getActiveDings({ burst: true })
 
-            const dings = await getActiveDings({ burst: true })
+                const liveStreamDing = first( dings )
 
-            const liveStreamDing = first( dings )
-
-            if ( liveStreamDing ) {
-                return liveStreamDing
+                if ( liveStreamDing ) {
+                    return liveStreamDing
+                }
             }
+
+            throw new Error( `could not get a ding for this livestream after ${maxTries} attempts` )
         }
 
-        throw new Error( `could not get a ding for this livestream after ${maxTries} attempts` )
+        // create a new live stream:
+        const liveStreamUrl = apiUrls.doorbots().device( device ).liveStream()
+        await restClient.authenticatedRequest( 'POST', liveStreamUrl )
+
+        return waitForDing()
     }
-
-    // create a new live stream:
-    const liveStreamUrl = apiUrls.doorbots().device( device ).liveStream()
-    await restClient.authenticatedRequest( 'POST', liveStreamUrl )
-
-    return waitForDing()
 }

@@ -1,19 +1,24 @@
 'use strict'
 
-const logger = require( 'debug' )( 'ring-api' )
+module.exports = bottle => bottle.service( 'getActiveDings', getActiveDings,
+    'restClient',
+    'apiUrls'
+)
 
-module.exports = api => async({ burst = false } = { burst: false }) => {
+function getActiveDings( restClient, apiUrls ) {
+    return async({ burst = false } = { burst: false }) => {
 
-    const dings = await api.restClient.authenticatedRequest(
-        'GET',
-        api.apiUrls.dings().active({ burst })
-    )
+        const dings = await restClient.authenticatedRequest(
+            'GET',
+            apiUrls.dings().active({ burst })
+        )
 
-    const parseDing = ding => {
-        ding.now = new Date( ding.now / 1000 )
+        const parseDing = ding => {
+            ding.now = new Date( ding.now / 1000 )
+        }
+
+        dings.forEach( parseDing )
+
+        return dings
     }
-
-    dings.forEach( parseDing )
-
-    return dings
 }

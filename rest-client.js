@@ -9,112 +9,118 @@ const isObject = require( 'lodash.isobject' )
 const propagatedError = require( './propagated-error' )
 const queryStringify = require( 'querystring' ).stringify
 
-const logger = require( 'debug' )( 'ring-api' )
+module.exports = bottle => bottle.service( 'restClient', restClient,
+    'apiUrls',
+    'options',
+    'logger'
+)
+function restClient( apiUrls, options, logger ) {
 
-let tokenResolve
-let tokenReject
-// this promise will be resolved when the token is available - some time after authenticate
-// is called
-const tokenPromise = new Promise(( resolve, reject ) => {
-    tokenResolve = resolve
-    tokenReject = reject
-})
+    let tokenResolve
+    let tokenReject
+    // this promise will be resolved when the token is available - some time after authenticate
+    // is called
+    const tokenPromise = new Promise(( resolve, reject ) => {
+        tokenResolve = resolve
+        tokenReject = reject
+    })
 
-const ringRequest = async reqData => {
+    const ringRequest = async reqData => {
 
-    reqData.transformResponse = [ require( './parse-ring-json-responses' ) ]
+        reqData.transformResponse = [ require( './parse-ring-json-responses' ) ]
 
-    reqData.headers = reqData.headers || {}
+        reqData.headers = reqData.headers || {}
 
-    if ( isObject( reqData.data )) {
-        reqData.data = JSON.stringify( reqData.data )
-        reqData.headers[ 'Content-type' ] = 'application/json'
+        if ( isObject( reqData.data )) {
+            reqData.data = JSON.stringify( reqData.data )
+            reqData.headers[ 'Content-type' ] = 'application/json'
+        }
+
+        reqData.params = reqData.params || {}
+        reqData.params.api_version = API_VERSION
+
+        logger( 'making ring api request', reqData )
+
+        const responseJson = await axios( reqData )
+
+        logger( 'got response', responseJson )
+
+        return responseJson.data
     }
 
-    reqData.params = reqData.params || {}
-    reqData.params.api_version = API_VERSION
+    return {
+        authenticate: async() => {
+            const { email, password, userAgent } = options
+            const sessionApiUrl = apiUrls.session()
+            try {
+                const reqBodyData = {
+                    username: email,
+                    password,
+                    'device[os]': 'ios',
+                    'device[hardware_id]': hardware_id,
+                    api_version: API_VERSION
+                }
 
-    logger( 'making ring api request', reqData )
+                const headers = {
+                    Authorization: 'Basic ' + new Buffer( email + ':' + password ).toString( 'base64' ),
+                    'content-type': 'application/x-www-form-urlencoded',
+                    'user-agent': userAgent
+                }
 
-    const responseJson = await axios( reqData )
+                const reqData = {
+                    url: sessionApiUrl,
+                    data: queryStringify( reqBodyData ),
+                    headers,
+                    method: 'POST'
+                }
 
-    logger( 'got response', responseJson )
+                const responseJson = await ringRequest( reqData )
 
-    return responseJson.data
-}
+                // delay copied from npm module doorbot - not sure what it is for
+                await delay( 1500 )
 
+                const token = responseJson.profile.authentication_token
 
-module.exports = apiUrls => ({
-    authenticate: async({ email, password, userAgent }) => {
-        const sessionApiUrl = apiUrls.session()
-        try {
-            const reqBodyData = {
-                username: email,
-                password,
-                'device[os]': 'ios',
-                'device[hardware_id]': hardware_id,
-                api_version: API_VERSION
+                logger( `have a new token for user ${email} ${token}` )
+
+                tokenResolve( token )
+            } catch ( upstreamError ) {
+
+                const errorMessage = `problem getting token for user ${email} from URL ${sessionApiUrl}`
+                const downstreamError = propagatedError(
+                    errorMessage,
+                    upstreamError
+                )
+                tokenReject( downstreamError )
             }
+        },
+        authenticatedRequest: async( method, url ) => {
 
-            const headers = {
-                Authorization: 'Basic ' + new Buffer( email + ':' + password ).toString( 'base64' ),
-                'content-type': 'application/x-www-form-urlencoded',
-                'user-agent': userAgent
+            const reqBodyData = {
+                api_version: API_VERSION,
+                // if a token has been gotten already, awaiting on tokenPromise will return very
+                // quickly, otherwise will wait until we have a token to do this:
+                auth_token: await tokenPromise
             }
 
             const reqData = {
-                url: sessionApiUrl,
-                data: queryStringify( reqBodyData ),
-                headers,
-                method: 'POST'
+                method,
+                url,
+                data: reqBodyData
             }
 
-            const responseJson = await ringRequest( reqData )
+            let responseJson
+            try {
+                responseJson = await ringRequest( reqData )
+            } catch ( e ) {
+                throw propagatedError( `problem ${method}ing endpoint ${url}`, e )
+            }
 
-            // delay copied from npm module doorbot - not sure what it is for
-            await delay( 1500 )
+            if ( responseJson && responseJson.error ) {
+                throw new Error( `error in API response ${responseJson.error}` )
+            }
 
-            const token = responseJson.profile.authentication_token
-
-            logger( `have a new token for user ${email} ${token}` )
-
-            tokenResolve( token )
-        } catch ( upstreamError ) {
-
-            const errorMessage = `problem getting token for user ${email} from URL ${sessionApiUrl}`
-            const downstreamError = propagatedError(
-                errorMessage,
-                upstreamError
-            );
-            tokenReject( downstreamError )
+            return responseJson
         }
-    },
-    authenticatedRequest: async( method, url ) => {
-
-        const reqBodyData = {
-            api_version: API_VERSION,
-            // if a token has been gotten already, awaiting on tokenPromise will return very
-            // quickly, otherwise will wait until we have a token to do this:
-            auth_token: await tokenPromise
-        }
-
-        const reqData = {
-            method,
-            url,
-            data: reqBodyData
-        }
-
-        let responseJson
-        try {
-            responseJson = await ringRequest( reqData )
-        } catch ( e ) {
-            throw propagatedError( `problem ${method}ing endpoint ${url}`, e )
-        }
-
-        if ( responseJson && responseJson.error ) {
-            throw new Error( `error in API response ${responseJson.error}` )
-        }
-
-        return responseJson
     }
-})
+}

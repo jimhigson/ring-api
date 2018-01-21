@@ -1,8 +1,6 @@
 'use strict'
 
-const logger = require( 'debug' )( 'ring-api' )
 const EventEmitter = require( 'events' )
-const assign = require( 'lodash.assign' )
 
 module.exports = ({
     email = process.env.RING_USER,
@@ -18,32 +16,47 @@ module.exports = ({
         )
     }
 
-    const events = new EventEmitter()
+    const bottle = require( 'bottlejs' )()
 
-    const apiUrls = require( './api-urls' )( serverRoot )
+    require( './api-urls' )( bottle )
+    require( './rest-client' )( bottle )
+    require( './get-history-list' )( bottle )
+    require( './get-live-stream' )( bottle )
+    require( './get-devices-list' )( bottle )
+    require( './poll-for-dings' )( bottle )
+    require( './get-active-dings' )( bottle )
 
-    const restClient = require( './rest-client' )( apiUrls )
-
-    restClient.authenticate({ email, password, userAgent })
-
-    const api = {
-        events,
-        apiUrls,
-        restClient
-    }
-
-    assign( api, {
-        devices: require( './get-devices-list' )( api ),
-
-        history: require( './get-history-list' )( api ),
-
-        activeDings: require( './get-active-dings' )( api ),
+    bottle.service( 'options', function() {
+        return { email, password, userAgent, poll, serverRoot }
+    })
+    bottle.service( 'events', function() {
+        return new EventEmitter()
+    })
+    bottle.service( 'logger', function() {
+        return require( 'debug' )( 'ring-api' )
     })
 
-    if ( poll ) {
-        require( './poll-for-dings.js' )( api )
+    bottle.service( 'api', api,
+        'getDevicesList',
+        'getHistoryList',
+        'getActiveDings',
+        'events'
+    )
+    function api( getDevicesList, getHistoryList, getActiveDings, events ) {
+        return {
+            devices: getDevicesList,
+            history: getHistoryList,
+            activeDings: getActiveDings,
+            events
+        }
     }
 
-    return api
+    if ( poll ) {
+        bottle.container.pollForDings.start()
+    }
+
+    bottle.container.restClient.authenticate()
+
+    return bottle.container.api
 }
 

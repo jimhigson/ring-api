@@ -5,6 +5,7 @@
   "main": "ring-api.js",
   "dependencies": {
     "axios": "^0.17.1",
+    "bottlejs": "^1.6.3",
     "colors": "^1.1.2",
     "content-type": "^1.0.4",
     "debug": "^3.1.0",

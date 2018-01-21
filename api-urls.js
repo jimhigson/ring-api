@@ -6,7 +6,7 @@ const assign = require( 'lodash.assign' )
 
     A path generator made out of strings with methods:
 
-    let u = require('./api-paths');
+    let u = require('./api-paths')( {serverRoot: 'https://api.ring.com/clients_api'} );
 
     > u
         -> String 'https://api.ring.com/clients_api'
@@ -21,74 +21,77 @@ const assign = require( 'lodash.assign' )
         -> String 'https://api.ring.com/clients_api/chimes/chime2/health
 
 */
+module.exports = bottle => bottle.service( 'apiUrls', apiUrls, 'options' )
+function apiUrls( options ) {
 
-module.exports = serverRoot => assign( '' + serverRoot, {
+    return assign( '' + options.serverRoot, {
 
-    session() {
-        return `${this}/session`
-    },
+        session() {
+            return `${this}/session`
+        },
 
-    devices() {
-        return `${this}/ring_devices`
-    },
+        devices() {
+            return `${this}/ring_devices`
+        },
 
-    doorbots() {
-        return assign( `${this}/doorbots`, {
+        doorbots() {
+            return assign( `${this}/doorbots`, {
 
-            device( device ) {
-                return assign( `${this}/${device.id}`, {
+                device( device ) {
+                    return assign( `${this}/${device.id}`, {
 
-                    lightOn() {
-                        return `${this}/floodlight_light_on`
-                    },
-                    lightOff() {
-                        return `${this}/floodlight_light_off`
-                    },
-                    liveStream() {
-                        return `${this}/vod`
-                    },
-                    health() {
-                        return `${this}/health`
-                    }
-                })
-            },
+                        lightOn() {
+                            return `${this}/floodlight_light_on`
+                        },
+                        lightOff() {
+                            return `${this}/floodlight_light_off`
+                        },
+                        liveStream() {
+                            return `${this}/vod`
+                        },
+                        health() {
+                            return `${this}/health`
+                        }
+                    })
+                },
 
-            history() {
-                return `${this}/history`
-            }
-        })
-    },
+                history() {
+                    return `${this}/history`
+                }
+            })
+        },
 
-    dings() {
-        return assign( `${this}/dings`, {
+        dings() {
+            return assign( `${this}/dings`, {
 
-            ding( ding ) {
-                return assign( `${this}/${ding.id}`, {
+                ding( ding ) {
+                    return assign( `${this}/${ding.id}`, {
 
-                    recording() {
-                        return `${this}/recording?disable_redirect=true`
-                    }
-                })
-            },
+                        recording() {
+                            return `${this}/recording?disable_redirect=true`
+                        }
+                    })
+                },
 
-            active({ burst = false } = { burst: false }) {
-                return `${this}/active?burst=${burst}`
-            }
-        })
-    },
+                active({ burst = false } = { burst: false }) {
+                    return `${this}/active?burst=${burst}`
+                }
+            })
+        },
 
-    chimes() {
-        return assign( `${this}/chimes`, {
+        chimes() {
+            return assign( `${this}/chimes`, {
 
-            device( device ) {
-                return assign( `${this}/${device.id}`, {
-                    health() {
-                        return `${this}/health`
-                    }
-                })
-            },
+                device( device ) {
+                    return assign( `${this}/${device.id}`, {
+                        health() {
+                            return `${this}/health`
+                        }
+                    })
+                },
 
-        })
-    }
+            })
+        }
 
-})
+    })
+}

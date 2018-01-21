@@ -1,45 +1,52 @@
 'use strict'
 
-const emojis = {
-    motion: '🏃',
-    ding: '🛎',
-    on_demand: '📱'
-}
-
-function historyToString() {
-    return `[ ${this.kind} ${emojis[ this.kind ] || ''} at "${this.doorbot.description}" ${this.created_at} ]`
-}
-
-function parseDate( dateStr ) {
-
-    const date = new Date( dateStr )
-
-    if ( isNaN( date.getTime())) {
-        throw new Error( `"${dateStr}" could not be parsed using Date constructor` )
+module.exports = bottle => bottle.service( 'getHistoryList', getHistoryList,
+    'restClient',
+    'apiUrls'
+)
+function getHistoryList( restClient, apiUrls ) {
+    const emojis = {
+        motion: '🏃',
+        ding: '🛎',
+        on_demand: '📱'
     }
 
-    return date
-}
+    function historyToString() {
+        return `[ ${this.kind} ${emojis[ this.kind ] || ''} at "${this.doorbot.description}" ${this.created_at} ]`
+    }
 
-module.exports = ({ restClient, apiUrls }) => async() => {
-    const historyListUrl = apiUrls.doorbots().history()
-    const historyItems = await restClient.authenticatedRequest( 'GET', historyListUrl )
+    function parseDate( dateStr ) {
 
-    historyItems.forEach( historyItem => {
-        historyItem.videoUrl = async() => {
-            const response = await restClient.authenticatedRequest(
-                'GET',
-                apiUrls.dings().ding( historyItem ).recording(),
-            )
-            return response.url
+        const date = new Date( dateStr )
+
+        if ( isNaN( date.getTime())) {
+            throw new Error( `"${dateStr}" could not be parsed using Date constructor` )
         }
-    })
 
-    historyItems.forEach( h => {
-        h.created_at = parseDate( h.created_at )
-    })
+        return date
+    }
 
-    historyItems.forEach( h => h.toString = historyToString )
+    return async() => {
+        const historyListUrl = apiUrls.doorbots().history()
+        const historyItems = await restClient.authenticatedRequest( 'GET', historyListUrl )
 
-    return historyItems
+        historyItems.forEach( historyItem => {
+            historyItem.videoUrl = async() => {
+                const response = await restClient.authenticatedRequest(
+                    'GET',
+                    apiUrls.dings().ding( historyItem ).recording(),
+                )
+                return response.url
+            }
+        })
+
+        historyItems.forEach( h => {
+            h.created_at = parseDate( h.created_at )
+        })
+
+        historyItems.forEach( h => h.toString = historyToString )
+
+        return historyItems
+    }
 }
+
