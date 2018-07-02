@@ -11,6 +11,7 @@ module.exports = defaultsDeep( {
 
     // project-specific rules here
     rules: {
-        'no-undef': ['error']
+        'no-undef': ['error'],
+        'no-unused-vars' : ['error']
     }
 }, require( 'jimhigson-my-eslint-rules' ) )

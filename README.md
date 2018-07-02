@@ -4,8 +4,11 @@ Ring API
 
 An unofficial, friendly Node.js API for [ring](http://ring.com) doorbells, cameras, etc
 
-Promised-based and aims to gloss over as much of ring's API weirdness as possible and hide the polling behind
-events
+* Promised-based
+* Glosses over ring's API weirdness
+* Hides http polling behind an event-driven interface
+
+Requires a JS runtime that supports ES6 async/await or else traspilation
 
 usage
 ---
@@ -15,7 +18,7 @@ const RingApi = require( 'ring-api' );
 const ringApi =  RingApi( {
 
     // note - that the email and password can also be given by setting the RING_USER 
-    // and RING_PASSWORD environment variables. This is better if you want to keep
+    // and RING_PASSWORD environment variables. For example if you want to keep
     // passwords out of your source code
     email: 'you@example.com',
     password: 'password you use on ring.com',
@@ -26,8 +29,9 @@ const ringApi =  RingApi( {
     // is considered unsafe
     userAgent: 'any string',
 
-    // OPTIONAL: if true, will poll behind the scenes. Listening for
-    // events only works if this is on. True by default.
+    // OPTIONAL: if true, ring-api will poll behind the scenes.
+    // Listening for events only works if this is on.
+    // True by default.
     poll: true,
     
     // OPTIONAL
@@ -56,6 +60,7 @@ Where the activity object looks like:
 
 ```js
 {
+   kind: 'motion',  // 'motion' or 'ring',
    // note - id will be a string - Javascript Number can't do large integers
    id: '6500907085284961754',
    id_str: '6500907085284961754', // same as id
@@ -65,8 +70,7 @@ Where the activity object looks like:
    doorbot_description: 'Back garden',
    device_kind: 'hp_cam_v1',
    motion: true,
-   snapshot_url: '',  // seems to always be blank
-   kind: 'motion',  // 'motion' or 'ring'
+   snapshot_url: '',  // seems to always be blank   
    expires_in: 175,
    now: Date, // js Date object
    optimization_level: 1,
@@ -98,11 +102,12 @@ Where the promise will resolve to an object like:
 
 ```js
 {
-   doorbells: [ /* array of doorbells */ ]
-   authorizedDoorbells: [], // not certain what this is for - please email if you know
-   chimes: [ /* array of chimes */ ],
-   cameras: [ /* array of cameras, floodlight cams, spotlight cams etc */ ] ],
-   baseStations: [] // presumably if you have a chime pro with the wifi hotspot built in?
+    all: [ /* all your devices in one array */ ],
+    doorbells: [ /* array of doorbells */ ]
+    authorizedDoorbells: [], // other people's doorbells you are authorised for
+    chimes: [ /* array of chimes */ ],
+    cameras: [ /* array of cameras, floodlight cams, spotlight cams etc */ ] ],
+    baseStations: [] // presumably if you have a chime pro with the wifi hotspot built in
 }
 ```
 

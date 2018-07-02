@@ -38,16 +38,16 @@ function restClient( apiUrls, options, logger ) {
             logger( 'got response', responseJson )
             return responseJson.data
         } catch ( e ) {
-            logger( colors.red( 'request errored' ), e.response.data )
+            logger( colors.red( 'request errored' ), e.response ? e.response.data : 'without response' )
             throw e
         }
     }
 
     const authenticate = async () => {
-        const { email, password } = options
+        const { email, password, userAgent } = options
 
         const authReqBody = {
-            "client_id": "http://github.com/jimhigson/ring-api",
+            "client_id": userAgent,
             "grant_type": "password",
             "password": password,
             "scope": "client",

@@ -4,6 +4,7 @@
 // if outside of this codebase, use require('ring-api' instaed)
 const ringApi = require( '../main' )
 const {healthSummary, historySummary} = require( './formatters' )
+const {inspect} = require( 'util' )
 
 const prompt = require( 'node-ask' ).prompt
 
@@ -22,9 +23,6 @@ const main = async() => {
         
         console.log( '🎵active dings now are', await ring.activeDings())
 
-        ring.events.on( 'activity', ding => console.log( '\t🎵there is a ding', ding ))
-        console.log( '🎵now listening for dings' )
-
         const devices = await ring.devices()
 
         await Promise.all( devices.cameras.map( async c => {
@@ -40,9 +38,10 @@ const main = async() => {
             console.log( `${c.toString()} 💡 is now off'` )
         }))
 
-        console.log( '📹details for latest live stream...', await devices.doorbells[ 0 ].liveStream())
+        console.log()
+        console.log( '📹details for latest live stream:\n', inspect( await devices.doorbells[ 0 ].liveStream, {colors:true} ))
 
-        const healthSummaries = await Promise.all( devices.all().map( healthSummary ) )
+        const healthSummaries = await Promise.all( devices.all.map( healthSummary ) )
         console.log( "\nDevice Healths\n===============\n", healthSummaries.join("\n") )
 
         const history = await ring.history()
@@ -50,6 +49,10 @@ const main = async() => {
 
         const videos = await Promise.all( history.map( h => h.videoUrl()))
         console.log( `your most recent 3 videos 📹 are at...\n\t ${videos.slice(0,3).join( '\n\t' )}` )
+
+        ring.events.on( 'activity', ding => console.log( '\t🎵there is a ding', ding ))        
+        console.log()
+        console.log( 'now listening for dings, they will log here until you kill this script' )
     } catch ( e ) {
         console.error( e )
     }

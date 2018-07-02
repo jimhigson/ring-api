@@ -14,7 +14,7 @@ function getActiveDings( restClient, apiUrls ) {
         )
 
         const parseDing = ding => {
-            ding.now = new Date( ding.now / 1000 )
+            ding.now = new Date( ding.now * 1000 )
         }
 
         dings.forEach( parseDing )
