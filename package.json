@@ -1,6 +1,6 @@
 {
   "name": "ring-api",
-  "version": "2.0.8",
+  "version": "2.1.0",
   "description": "Unofficial API for ring doorbells and other devices",
   "main": "main.js",
   "dependencies": {
