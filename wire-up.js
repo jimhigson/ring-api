@@ -10,10 +10,10 @@ module.exports = bottle => {
     require( './poll-for-dings' )( bottle )
     require( './get-active-dings' )( bottle )
 
-    bottle.service( 'events', function events() {
+    bottle.service( 'events', function() {
         return new EventEmitter()
     })
-    bottle.service( 'logger', function logger() {
+    bottle.service( 'logger', function() {
         return require( 'debug' )( 'ring-api' )
     })
 

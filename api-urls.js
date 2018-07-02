@@ -27,7 +27,7 @@ function apiUrls( options ) {
     return assign( '' + options.serverRoot, {
 
         auth() {
-            return `https://oauth.ring.com/oauth/token`
+            return 'https://oauth.ring.com/oauth/token'
         },
 
         session() {

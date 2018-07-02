@@ -26,7 +26,7 @@ function getHistoryList( restClient, apiUrls ) {
     class HistoryItem {
 
         constructor( jsonFromResponse ) {
-            // a naieve copy like this could one day create a bug if Ring add property 
+            // a naieve copy like this could one day create a bug if Ring add property
             // names to their client API that shaddow our OOP methods
             Object.assign( this, jsonFromResponse )
 
@@ -37,8 +37,8 @@ function getHistoryList( restClient, apiUrls ) {
             return apiUrls.dings().ding( this )
         }
 
-        async videoUrl () {
-            const response = await restClient( 'GET', this.apiUri.recording() )
+        async videoUrl() {
+            const response = await restClient( 'GET', this.apiUri.recording())
             return response.url
         }
 
@@ -51,7 +51,7 @@ function getHistoryList( restClient, apiUrls ) {
         const historyListUrl = apiUrls.doorbots().history()
         const historyItems = await restClient( 'GET', historyListUrl )
 
-        return historyItems.map( h => new HistoryItem(h) )
+        return historyItems.map( h => new HistoryItem( h ))
     }
 }
 

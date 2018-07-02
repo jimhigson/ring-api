@@ -5,13 +5,6 @@ const defaultsDeep = require( 'lodash.defaultsdeep' );
 module.exports = defaultsDeep( {
     parser: 'babel-eslint',
     env: { 
-        "node": true,
-        es6: true
+        "node": true
     },
-
-    // project-specific rules here
-    rules: {
-        'no-undef': ['error'],
-        'no-unused-vars' : ['error']
-    }
 }, require( 'jimhigson-my-eslint-rules' ) )

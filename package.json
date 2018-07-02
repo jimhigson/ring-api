@@ -1,6 +1,6 @@
 {
   "name": "ring-api",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "description": "Unofficial API for ring doorbells and other devices",
   "main": "main.js",
   "dependencies": {
@@ -30,7 +30,7 @@
     "babel-eslint": "^8.1.2",
     "eslint": "^4.15.0",
     "eslint-config-idiomatic": "^4.0.0",
-    "jimhigson-my-eslint-rules": "^1.0.1",
+    "jimhigson-my-eslint-rules": "^1.0.3",
     "lodash.defaultsdeep": "^4.6.0",
     "node-ask": "^1.0.1"
   }

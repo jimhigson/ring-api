@@ -16,7 +16,7 @@ module.exports = ({
 
     const bottle = require( 'bottlejs' )()
 
-    bottle.service( 'options', function options() {
+    bottle.service( 'options', function() {
         return { email, password, userAgent, poll, serverRoot }
     })
 

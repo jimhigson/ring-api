@@ -29,21 +29,21 @@ function getDevicesList( restClient, apiUrls, getLiveStream ) {
 
     class DeviceHealth {
         constructor( jsonFromResponse ) {
-            // a naieve copy like this could one day create a bug if Ring add property 
+            // a naieve copy like this could one day create a bug if Ring add property
             // names to their client API that shaddow our OOP methods
-            Object.assign( this, jsonFromResponse )            
+            Object.assign( this, jsonFromResponse )
 
             this.updated_at = new Date( jsonFromResponse.updated_at )
         }
     }
 
     class Device {
-        constructor( jsonFromResponse ) {            
-            // a naieve copy like this could one day create a bug if Ring add property 
+        constructor( jsonFromResponse ) {
+            // a naieve copy like this could one day create a bug if Ring add property
             // names to their client API that shaddow our OOP methods
             Object.assign( this, jsonFromResponse )
         }
-        
+
         toString() {
             return `[${emojis[ this.kind ] || this.kind} ${this.description}]`
         }
@@ -52,8 +52,8 @@ function getDevicesList( restClient, apiUrls, getLiveStream ) {
             return apiUrls.doorbots().device( this )
         }
 
-        async health () {
-            const healthResponse = await restClient( 'GET', this.apiUri.health() )
+        async health() {
+            const healthResponse = await restClient( 'GET', this.apiUri.health())
             return new DeviceHealth( healthResponse.device_health )
         }
     }
@@ -74,7 +74,7 @@ function getDevicesList( restClient, apiUrls, getLiveStream ) {
     }
 
     const streamable = Base => class extends Base {
-        get liveStream(){
+        get liveStream() {
             return getLiveStream( this )
         }
     }
@@ -93,27 +93,27 @@ function getDevicesList( restClient, apiUrls, getLiveStream ) {
     return async() => {
 
         const rawDeviceList = await restClient( 'GET', apiUrls.devices())
-        
-        const listAsTypes = (key, list) => {
-            if( types[key] ) {
-                const Type = types[key]
-                return list.map( d => new Type(d) )
+
+        const listAsTypes = ( key, list ) => {
+            if ( types[ key ]) {
+                const Type = types[ key ]
+                return list.map( d => new Type( d ))
             } else {
                 return list
             }
         }
 
-        const devices = Object.entries( rawDeviceList ).reduce( (acc, [key, devicesList]) => {
+        const devices = Object.entries( rawDeviceList ).reduce(( acc, [ key, devicesList ]) => {
             const newKey = keyReplacements[ key ] || key
-                                
+
             return {
                 ...acc,
-                [newKey]: listAsTypes( newKey, devicesList )
+                [ newKey ]: listAsTypes( newKey, devicesList )
             }
-        }, {} )
+        }, {})
 
         // convenience property containing an array of all devices
-        devices.all = [...devices.doorbells, ...devices.cameras, ...devices.chimes ]
+        devices.all = [ ...devices.doorbells, ...devices.cameras, ...devices.chimes ]
 
         return devices
     }

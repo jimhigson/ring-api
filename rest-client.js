@@ -7,7 +7,7 @@ const axios = require( 'axios' )
 const delay = require( 'timeout-as-promise' )
 const isObject = require( 'lodash.isobject' )
 const propagatedError = require( './propagated-error' )
-const colors = require('colors/safe')
+const colors = require( 'colors/safe' )
 
 module.exports = bottle => bottle.service( 'restClient', restClient,
     'apiUrls',
@@ -29,7 +29,7 @@ function restClient( apiUrls, options, logger ) {
 
         reqData.params = reqData.params || {}
         reqData.params.api_version = API_VERSION
-        
+
         logger( 'making ring api request', reqData )
 
         try {
@@ -43,15 +43,15 @@ function restClient( apiUrls, options, logger ) {
         }
     }
 
-    const authenticate = async () => {
+    const authenticate = async() => {
         const { email, password, userAgent } = options
 
         const authReqBody = {
-            "client_id": userAgent,
-            "grant_type": "password",
-            "password": password,
-            "scope": "client",
-            "username": email
+            'client_id': userAgent,
+            'grant_type': 'password',
+            'password': password,
+            'scope': 'client',
+            'username': email
         }
         const reqData = {
             url: apiUrls.auth(),
@@ -59,9 +59,9 @@ function restClient( apiUrls, options, logger ) {
             method: 'POST'
         }
 
-        const authToken = (await ringRequest( reqData )).access_token
+        const authToken = ( await ringRequest( reqData )).access_token
 
-        logger( colors.green('got auth token', authToken ))
+        logger( colors.green( 'got auth token', authToken ))
 
         return authToken
     }
@@ -69,43 +69,43 @@ function restClient( apiUrls, options, logger ) {
     const establishSession = async authToken => {
         const sessionReqBody = {
             device: {
-                "hardware_id": hardware_id,
-                "metadata": {
-                    "api_version": "9",
+                'hardware_id': hardware_id,
+                'metadata': {
+                    'api_version': '9',
                 },
-                "os": "ios"
+                'os': 'ios'
             }
         }
         const sessionReqHeaders = {
             Authorization: `bearer ${authToken}`
         }
 
-        const sessionResponse = await ringRequest( {
-            url:  apiUrls.session(),
+        const sessionResponse = await ringRequest({
+            url: apiUrls.session(),
             data: sessionReqBody,
             headers: sessionReqHeaders,
             method: 'POST'
-        } )    
+        })
 
         // delay copied from npm module doorbot - not sure what it is for
         await delay( 1500 )
 
         const sessionToken = sessionResponse.profile.authentication_token
 
-        logger( colors.green('got session token', sessionToken))
+        logger( colors.green( 'got session token', sessionToken ))
 
         return sessionToken
     }
 
-    const session = new Promise( async (resolve, reject) => {                    
+    const session = new Promise( async( resolve, reject ) => {
         try {
-            resolve( 
-                await establishSession( 
-                    await authenticate() 
-                ) 
+            resolve(
+                await establishSession(
+                    await authenticate()
+                )
             )
         } catch ( caughtError ) {
-            const errorMessage = `problem getting token`
+            const errorMessage = 'problem getting token'
 
             const thrownError = propagatedError(
                 errorMessage,
@@ -139,5 +139,5 @@ function restClient( apiUrls, options, logger ) {
         }
 
         return responseJson
-    }    
+    }
 }
