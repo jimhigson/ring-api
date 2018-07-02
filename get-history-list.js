@@ -28,11 +28,11 @@ function getHistoryList( restClient, apiUrls ) {
 
     return async() => {
         const historyListUrl = apiUrls.doorbots().history()
-        const historyItems = await restClient.authenticatedRequest( 'GET', historyListUrl )
+        const historyItems = await restClient( 'GET', historyListUrl )
 
         historyItems.forEach( historyItem => {
             historyItem.videoUrl = async() => {
-                const response = await restClient.authenticatedRequest(
+                const response = await restClient(
                     'GET',
                     apiUrls.dings().ding( historyItem ).recording(),
                 )

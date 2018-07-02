@@ -115,31 +115,29 @@ function restClient( apiUrls, options, logger ) {
         }
     })
 
-    return {
-        authenticatedRequest: async( method, url ) => {
-            const reqBodyData = {
-                api_version: API_VERSION,
-                auth_token: await session
-            }
-
-            const reqData = {
-                method,
-                url,
-                data: reqBodyData
-            }
-
-            let responseJson
-            try {
-                responseJson = await ringRequest( reqData )
-            } catch ( e ) {
-                throw propagatedError( `problem ${method}ing endpoint ${url}`, e )
-            }
-
-            if ( responseJson && responseJson.error ) {
-                throw new Error( `error in API response ${responseJson.error}` )
-            }
-
-            return responseJson
+    return async( method, url ) => {
+        const reqBodyData = {
+            api_version: API_VERSION,
+            auth_token: await session
         }
-    }
+
+        const reqData = {
+            method,
+            url,
+            data: reqBodyData
+        }
+
+        let responseJson
+        try {
+            responseJson = await ringRequest( reqData )
+        } catch ( e ) {
+            throw propagatedError( `problem ${method}ing endpoint ${url}`, e )
+        }
+
+        if ( responseJson && responseJson.error ) {
+            throw new Error( `error in API response ${responseJson.error}` )
+        }
+
+        return responseJson
+    }    
 }

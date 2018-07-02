@@ -37,7 +37,7 @@ function getDevicesList( restClient, apiUrls, getLiveStream ) {
 
     return async() => {
 
-        const rawDeviceList = await restClient.authenticatedRequest( 'GET', apiUrls.devices())
+        const rawDeviceList = await restClient( 'GET', apiUrls.devices())
         const devices = makeDevicesListFriendlier( rawDeviceList )
 
         const enhanceTypes = ( typesList, enhancer ) => {
@@ -49,8 +49,8 @@ function getDevicesList( restClient, apiUrls, getLiveStream ) {
 
         enhanceTypes([ 'cameras' ], device => {
             const deviceUri = apiUrls.doorbots().device( device )
-            device.lightOn = () => restClient.authenticatedRequest( 'PUT', deviceUri.lightOn())
-            device.lightOff = () => restClient.authenticatedRequest( 'PUT', deviceUri.lightOff())
+            device.lightOn = () => restClient( 'PUT', deviceUri.lightOn())
+            device.lightOff = () => restClient( 'PUT', deviceUri.lightOff())
         })
 
         enhanceTypes([ 'cameras', 'doorbells' ], device => {
@@ -69,7 +69,7 @@ function getDevicesList( restClient, apiUrls, getLiveStream ) {
             const deviceHealthUrl = apiUrls[ kludgedType ]().device( device ).health()
 
             device.health = async() => {
-                const healthResponse = await restClient.authenticatedRequest( 'GET', deviceHealthUrl )
+                const healthResponse = await restClient( 'GET', deviceHealthUrl )
                 const deviceHealth = healthResponse.device_health
 
                 deviceHealth.updated_at = new Date( deviceHealth.updated_at )
