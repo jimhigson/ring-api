@@ -26,16 +26,20 @@ function apiUrls( options ) {
 
     return assign( '' + options.serverRoot, {
 
+        auth() {
+            return `https://oauth.ring.com/oauth/token`
+        },
+
         session() {
-            return `${this}/session`
+            return `${this}/clients_api/session`
         },
 
         devices() {
-            return `${this}/ring_devices`
+            return `${this}/clients_api/ring_devices`
         },
 
         doorbots() {
-            return assign( `${this}/doorbots`, {
+            return assign( `${this}/clients_api/doorbots`, {
 
                 device( device ) {
                     return assign( `${this}/${device.id}`, {
@@ -62,7 +66,7 @@ function apiUrls( options ) {
         },
 
         dings() {
-            return assign( `${this}/dings`, {
+            return assign( `${this}/clients_api/dings`, {
 
                 ding( ding ) {
                     return assign( `${this}/${ding.id}`, {
@@ -80,7 +84,7 @@ function apiUrls( options ) {
         },
 
         chimes() {
-            return assign( `${this}/chimes`, {
+            return assign( `${this}/clients_api/chimes`, {
 
                 device( device ) {
                     return assign( `${this}/${device.id}`, {
