@@ -16,6 +16,12 @@ module.exports = bottle => bottle.service( 'restClient', restClient,
 )
 function restClient( apiUrls, options, logger ) {
 
+    // axios responses are too verbose to log, make a smaller format by
+    // extracting some properties
+    const loggableResponse = ({ status, statusText, headers, data }) => ({
+        status, statusText, headers, data
+    })
+
     const ringRequest = async reqData => {
 
         reqData.transformResponse = [ require( './parse-ring-json-responses' ) ]
@@ -33,14 +39,14 @@ function restClient( apiUrls, options, logger ) {
         logger( 'making ring api request', reqData )
 
         try {
-            const responseJson = await axios( reqData )
+            const axiosResponse = await axios( reqData )
 
-            logger( 'got response', responseJson )
-            return responseJson.data
+            logger( 'got http response', loggableResponse( axiosResponse ))
+            return axiosResponse.data
         } catch ( e ) {
             const response = e.response
 
-            logger( colors.red( 'request errored' ), e.response ? e.response.data : 'without response' )
+            logger( colors.red( 'http request errored' ), e.response ? e.response.data : 'without response' )
 
             let message = `Request to ring API at ${reqData.url} failed`
 
