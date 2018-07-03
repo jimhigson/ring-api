@@ -181,6 +181,18 @@ printHealth( devices.chimes[0] );
 printHealth( devices.cameras[0] );
 ```
 
+debugging
+---------
+
+To get extended debugging info, since ring-api uses [https://www.npmjs.com/package/debug](debug) you
+can set the `DEBUG` environment variable to `ring-api` (or add ring-api to it if it is already set)
+
+For example, to run the [example script](examples/example-script) from bash with debugging you might do:
+
+```bash
+env DEBUG="$DEBUG ring-api" ./examples/example-script
+```
+
 Thanks to
 -----
 
