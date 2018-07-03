@@ -6,5 +6,5 @@ module.exports = defaultsDeep( {
     parser: 'babel-eslint',
     env: { 
         "node": true
-    },
+    }
 }, require( 'jimhigson-my-eslint-rules' ) )
