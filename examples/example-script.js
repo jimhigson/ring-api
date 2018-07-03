@@ -16,7 +16,7 @@ if ( !process.env.RING_USER || !process.env.RING_PASSWORD ) {
 const main = async() => {
 
     try {
-        const ring = ringApi({
+        const ring = await ringApi({
             // we'll use the default options for this example. Maks sure you have the
             // username and password as RING_USER or RING_PASSWORD or place them here
         })

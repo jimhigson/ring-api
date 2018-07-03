@@ -38,8 +38,21 @@ function restClient( apiUrls, options, logger ) {
             logger( 'got response', responseJson )
             return responseJson.data
         } catch ( e ) {
+            const response = e.response
+
             logger( colors.red( 'request errored' ), e.response ? e.response.data : 'without response' )
-            throw e
+
+            let message = `Request to ring API at ${reqData.url} failed`
+
+            if ( response.data && response.data.error_description ) {
+                // oauth errors
+                message = `${message} with "${response.data.error_description}"`
+            } else if ( response.data && response.data.error ) {
+                // ring client api errors
+                message = `${message} with "${response.data.error}"`
+            }
+
+            throw propagatedError( message, e )
         }
     }
 
@@ -59,7 +72,12 @@ function restClient( apiUrls, options, logger ) {
             method: 'POST'
         }
 
-        const authToken = ( await ringRequest( reqData )).access_token
+        let authToken
+        try {
+            authToken = ( await ringRequest( reqData )).access_token
+        } catch ( requestError ) {
+            throw propagatedError( `could not get auth token for user ${email}`, requestError )
+        }
 
         logger( colors.green( 'got auth token', authToken ))
 
@@ -79,65 +97,60 @@ function restClient( apiUrls, options, logger ) {
         const sessionReqHeaders = {
             Authorization: `bearer ${authToken}`
         }
-
-        const sessionResponse = await ringRequest({
+        const requestData = {
             url: apiUrls.session(),
             data: sessionReqBody,
             headers: sessionReqHeaders,
             method: 'POST'
-        })
+        }
+
+        let sessionToken
+        try {
+            sessionToken = ( await ringRequest( requestData )).profile.authentication_token
+        } catch ( requestError ) {
+            throw propagatedError( `could not get a session token given auth token ${authToken}`, requestError )
+        }
 
         // delay copied from npm module doorbot - not sure what it is for
         await delay( 1500 )
-
-        const sessionToken = sessionResponse.profile.authentication_token
 
         logger( colors.green( 'got session token', sessionToken ))
 
         return sessionToken
     }
 
-    const session = new Promise( async( resolve, reject ) => {
-        try {
-            resolve(
-                await establishSession(
-                    await authenticate()
-                )
-            )
-        } catch ( caughtError ) {
-            const errorMessage = 'problem getting token'
+    const authenticatedSession = async() => establishSession( await authenticate())
 
-            const thrownError = propagatedError(
-                errorMessage,
-                caughtError
-            )
-            reject( thrownError )
+    const session = authenticatedSession()
+
+    return {
+        // await on .session to be sure that are authenticated
+        session,
+
+        authenticatedRequest: async( method, url ) => {
+            const reqBodyData = {
+                api_version: API_VERSION,
+                auth_token: await session
+            }
+
+            const reqData = {
+                method,
+                url,
+                data: reqBodyData
+            }
+
+            let responseJson
+            try {
+                responseJson = await ringRequest( reqData )
+            } catch ( e ) {
+                throw propagatedError( `problem ${method}ing endpoint ${url}`, e )
+            }
+
+            if ( responseJson && responseJson.error ) {
+                throw new Error( `error in API response ${responseJson.error}` )
+            }
+
+            return responseJson
         }
-    })
-
-    return async( method, url ) => {
-        const reqBodyData = {
-            api_version: API_VERSION,
-            auth_token: await session
-        }
-
-        const reqData = {
-            method,
-            url,
-            data: reqBodyData
-        }
-
-        let responseJson
-        try {
-            responseJson = await ringRequest( reqData )
-        } catch ( e ) {
-            throw propagatedError( `problem ${method}ing endpoint ${url}`, e )
-        }
-
-        if ( responseJson && responseJson.error ) {
-            throw new Error( `error in API response ${responseJson.error}` )
-        }
-
-        return responseJson
     }
 }

@@ -15,7 +15,11 @@ usage
 
 ```js
 const RingApi = require( 'ring-api' );
-const ringApi =  RingApi( {
+
+// note that RingApi returns a promise - the promise resolves when you are authenticated/
+// authorised and have a session ready to start interacting with your ring deviecs. This
+// promise will reject if for some reason you are not able to log in
+const ringApi = await RingApi( {
 
     // note - that the email and password can also be given by setting the RING_USER 
     // and RING_PASSWORD environment variables. For example if you want to keep

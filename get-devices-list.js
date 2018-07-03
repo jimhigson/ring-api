@@ -53,7 +53,7 @@ function getDevicesList( restClient, apiUrls, getLiveStream ) {
         }
 
         async health() {
-            const healthResponse = await restClient( 'GET', this.apiUri.health())
+            const healthResponse = await restClient.authenticatedRequest( 'GET', this.apiUri.health())
             return new DeviceHealth( healthResponse.device_health )
         }
     }
@@ -66,10 +66,10 @@ function getDevicesList( restClient, apiUrls, getLiveStream ) {
 
     const lightable = Base => class extends Base {
         lightOn() {
-            return restClient( 'PUT', this.apiUri.lightOn())
+            return restClient.authenticatedRequest( 'PUT', this.apiUri.lightOn())
         }
         lightOff() {
-            return restClient( 'PUT', this.apiUri.lightOff())
+            return restClient.authenticatedRequest( 'PUT', this.apiUri.lightOff())
         }
     }
 
@@ -92,7 +92,7 @@ function getDevicesList( restClient, apiUrls, getLiveStream ) {
 
     return async() => {
 
-        const rawDeviceList = await restClient( 'GET', apiUrls.devices())
+        const rawDeviceList = await restClient.authenticatedRequest( 'GET', apiUrls.devices())
 
         const listAsTypes = ( key, list ) => {
             if ( types[ key ]) {

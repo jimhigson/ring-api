@@ -38,7 +38,7 @@ function getHistoryList( restClient, apiUrls ) {
         }
 
         async videoUrl() {
-            const response = await restClient( 'GET', this.apiUri.recording())
+            const response = await restClient.authenticatedRequest( 'GET', this.apiUri.recording())
             return response.url
         }
 
@@ -49,7 +49,7 @@ function getHistoryList( restClient, apiUrls ) {
 
     return async() => {
         const historyListUrl = apiUrls.doorbots().history()
-        const historyItems = await restClient( 'GET', historyListUrl )
+        const historyItems = await restClient.authenticatedRequest( 'GET', historyListUrl )
 
         return historyItems.map( h => new HistoryItem( h ))
     }

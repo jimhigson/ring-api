@@ -34,7 +34,7 @@ function getLiveStream( restClient, apiUrls, getActiveDings, logger ) {
 
         // create a new live stream:
         const liveStreamUrl = apiUrls.doorbots().device( device ).liveStream()
-        await restClient( 'POST', liveStreamUrl )
+        await restClient.authenticatedRequest( 'POST', liveStreamUrl )
 
         return waitForDing()
     }

@@ -8,7 +8,7 @@ module.exports = bottle => bottle.service( 'getActiveDings', getActiveDings,
 function getActiveDings( restClient, apiUrls ) {
     return async({ burst = false } = { burst: false }) => {
 
-        const dings = await restClient(
+        const dings = await restClient.authenticatedRequest(
             'GET',
             apiUrls.dings().active({ burst })
         )

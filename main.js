@@ -1,6 +1,8 @@
 'use strict'
 
-module.exports = ({
+const propagatedError = require( './propagated-error' )
+
+module.exports = async({
     email = process.env.RING_USER,
     password = process.env.RING_PASSWORD,
     userAgent = 'github.com/jimhigson/ring-api',
@@ -21,6 +23,13 @@ module.exports = ({
     })
 
     require( './wire-up' )( bottle )
+
+    // wait until we have a session before going any further
+    try {
+        await bottle.container.restClient.session
+    } catch ( e ) {
+        throw propagatedError( 'session failed to initialise, cannot create ring-api instance', e )
+    }
 
     if ( poll ) {
         bottle.container.pollForDings.start()
