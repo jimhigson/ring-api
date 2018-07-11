@@ -20,6 +20,7 @@
     "time-constants": "^1.0.2",
     "timeout-as-promise": "^1.0.0"
   },
+  "repository": "github:jimhigson/ring-api",
   "scripts": {
     "lint": "eslint .",
     "lint:fix": "eslint --fix ."

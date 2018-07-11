@@ -2,8 +2,9 @@
 Ring API
 ===
 
-An unofficial, friendly Node.js API for [ring](http://ring.com) doorbells, cameras, etc
+An unofficial, friendly Javascript API for [ring](http://ring.com) doorbells, cameras, etc.
 
+* Happy in node or browsers
 * Promised-based
 * Glosses over ring's API weirdness
 * Hides http polling behind an event-driven interface

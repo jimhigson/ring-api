@@ -25,18 +25,22 @@ const main = async() => {
 
         const devices = await ring.devices()
 
-        await Promise.all( devices.cameras.map( async c => {
+        if ( devices.cameras.length ) {
+            await Promise.all( devices.cameras.map( async c => {
 
-            await c.lightOn()
-            console.log( `${c.toString()} is now on'` )
-        }))
+                await c.lightOn()
+                console.log( `${c.toString()} is now on'` )
+            }))
 
-        await prompt( 'your lights should now all be on. Hit return ⏎ to turn them off again' )
+            await prompt( 'your lights should now all be on. Hit return ⏎ to turn them off again' )
 
-        await Promise.all( devices.cameras.map( async c => {
-            await c.lightOff()
-            console.log( `${c.toString()} 💡 is now off'` )
-        }))
+            await Promise.all( devices.cameras.map( async c => {
+                await c.lightOff()
+                console.log( `${c.toString()} 💡 is now off'` )
+            }))
+        } else {
+            console.log( 'you have no devices with lights 💡 that I can turn on' )
+        }
 
         console.log()
         console.log( '📹details for latest live stream:\n', inspect( await devices.doorbells[ 0 ].liveStream, { colors: true }))
