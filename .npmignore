@@ -1,1 +1,5 @@
+node_modules/
+.idea
+.vscode/
+*.code-workspace
 ringy.js
