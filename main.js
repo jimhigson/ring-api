@@ -1,6 +1,7 @@
 'use strict'
 
 const propagatedError = require( './propagated-error' )
+const wireUp = require( './wire-up' )
 
 module.exports = async({
     email = process.env.RING_USER,
@@ -15,25 +16,19 @@ module.exports = async({
         )
     }
 
-    const bottle = require( 'bottlejs' )()
-
-    bottle.service( 'options', function() {
-        return { email, password, poll, serverRoot }
-    })
-
-    require( './wire-up' )( bottle )
+    const container = wireUp({ email, password, poll, serverRoot })
 
     // wait until we have a session before going any further
     try {
-        await bottle.container.restClient.session
+        await container.restClient.session
     } catch ( e ) {
         throw propagatedError( 'session failed to initialise, cannot create ring-api instance', e )
     }
 
     if ( poll ) {
-        bottle.container.pollForDings.start()
+        container.pollForDings.start()
     }
 
-    return bottle.container.api
+    return container.api
 }
 

@@ -1,6 +1,12 @@
 const EventEmitter = require( 'events' )
 
-module.exports = bottle => {
+module.exports = options => {
+
+    const bottle = require( 'bottlejs' )()
+
+    bottle.service( 'options', function() {
+        return options
+    })
 
     require( './api-urls' )( bottle )
     require( './rest-client' )( bottle )
@@ -18,4 +24,6 @@ module.exports = bottle => {
     })
 
     require( './top-level-api' )( bottle )
+
+    return bottle.container
 }
