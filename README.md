@@ -28,11 +28,9 @@ const ringApi = await RingApi( {
     email: 'you@example.com',
     password: 'password you use on ring.com',
 
-    // OPTIONAL: any user agent you want to use default is the github
-    // url of this project: 'http://github.com/jimhigson/ring-api'
-    // note that this wont be used if running in a browser because this header
-    // is considered unsafe
-    userAgent: 'any string',
+    // the user agent parameter has been removed since Ring have started rejecting
+    // unrecognised agent strings
+    //userAgent: 'any string',
 
     // OPTIONAL: if true, ring-api will poll behind the scenes.
     // Listening for events only works if this is on.

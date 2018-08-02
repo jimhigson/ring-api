@@ -56,7 +56,7 @@ const main = async() => {
 
         ring.events.on( 'activity', ding => console.log( '\t🎵there is a ding', ding ))
         console.log()
-        console.log( 'now listening for dings, they will log here until you kill this script' )
+        console.log( 'now listening for dings, they will log here until you kill this script. Go press your doorbell!' )
     } catch ( e ) {
         console.error( e )
     }

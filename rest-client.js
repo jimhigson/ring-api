@@ -14,7 +14,7 @@ module.exports = bottle => bottle.service( 'restClient', restClient,
     'options',
     'logger'
 )
-function restClient( apiUrls, options, logger ) {
+function restClient( apiUrls, { email, password }, logger ) {
 
     // axios responses are too verbose to log, make a smaller format by
     // extracting some properties
@@ -22,24 +22,21 @@ function restClient( apiUrls, options, logger ) {
         status, statusText, headers, data
     })
 
-    const ringRequest = async reqData => {
+    const ringRequest = async({ method, url, headers = {}, data, params = {} }) => {
 
-        reqData.transformResponse = [ require( './parse-ring-json-responses' ) ]
-
-        reqData.headers = reqData.headers || {}
-
-        if ( isObject( reqData.data )) {
-            reqData.data = JSON.stringify( reqData.data )
-            reqData.headers[ 'Content-type' ] = 'application/json'
+        const axiosParams = {
+            transformResponse: [ require( './parse-ring-json-responses' ) ],
+            method,
+            url,
+            params,
+            data: isObject( data ) ? JSON.stringify( data ) : data,
+            headers: isObject( data ) ? { 'Content-type': 'application/json', ...headers } : headers
         }
 
-        reqData.params = reqData.params || {}
-        reqData.params.api_version = API_VERSION
-
-        logger( 'making ring api request', reqData )
-
         try {
-            const axiosResponse = await axios( reqData )
+            logger( 'making ring api request', axiosParams )
+
+            const axiosResponse = await axios( axiosParams )
 
             logger( 'got http response', loggableResponse( axiosResponse ))
             return axiosResponse.data
@@ -48,7 +45,7 @@ function restClient( apiUrls, options, logger ) {
 
             logger( colors.red( 'http request errored' ), e.response ? e.response.data : 'without response' )
 
-            let message = `Request to ring API at ${reqData.url} failed`
+            let message = `Request to ring API at ${url} failed`
 
             if ( response.data && response.data.error_description ) {
                 // oauth errors
@@ -63,10 +60,9 @@ function restClient( apiUrls, options, logger ) {
     }
 
     const authenticate = async() => {
-        const { email, password, userAgent } = options
 
         const authReqBody = {
-            'client_id': userAgent,
+            'client_id': 'ring_official_android',
             'grant_type': 'password',
             'password': password,
             'scope': 'client',
@@ -142,7 +138,9 @@ function restClient( apiUrls, options, logger ) {
             const reqData = {
                 method,
                 url,
-                data: reqBodyData
+                data: reqBodyData,
+                params: { api_version: API_VERSION },
+                headers: { 'user-agent': 'android:com.ringapp:2.0.67(423)' }
             }
 
             let responseJson

@@ -5,7 +5,6 @@ const propagatedError = require( './propagated-error' )
 module.exports = async({
     email = process.env.RING_USER,
     password = process.env.RING_PASSWORD,
-    userAgent = 'github.com/jimhigson/ring-api',
     poll = true,
     serverRoot = 'https://api.ring.com' }) => {
 
@@ -19,7 +18,7 @@ module.exports = async({
     const bottle = require( 'bottlejs' )()
 
     bottle.service( 'options', function() {
-        return { email, password, userAgent, poll, serverRoot }
+        return { email, password, poll, serverRoot }
     })
 
     require( './wire-up' )( bottle )
