@@ -1,13 +1,16 @@
 'use strict'
 
-const API_VERSION = 9
+const API_VERSION = 11
 const hardware_id = require( 'crypto' ).randomBytes( 16 ).toString( 'hex' )
 
 const axios = require( 'axios' )
 const delay = require( 'timeout-as-promise' )
 const isObject = require( 'lodash.isobject' )
+const compose = require( 'lodash.compose' )
 const propagatedError = require( './propagated-error' )
 const colors = require( 'colors/safe' )
+
+const loggableObject = color => object => colors[ color ]( JSON.stringify( object, null, 4 ))
 
 module.exports = bottle => bottle.service( 'restClient', restClient,
     'apiUrls',
@@ -18,9 +21,11 @@ function restClient( apiUrls, { email, password }, logger ) {
 
     // axios responses are too verbose to log, make a smaller format by
     // extracting some properties
-    const loggableResponse = ({ status, statusText, headers, data }) => ({
+    const loggableResponseFields = ({ status, statusText, headers, data }) => ({
         status, statusText, headers, data
     })
+    const loggableResponse = compose( loggableObject( 'cyan' ), loggableResponseFields )
+    const loggableRequest = loggableObject( 'yellow' )
 
     const ringRequest = async({ method, url, headers = {}, data, params = {} }) => {
 
@@ -29,16 +34,24 @@ function restClient( apiUrls, { email, password }, logger ) {
             method,
             url,
             params,
-            data: isObject( data ) ? JSON.stringify( data ) : data,
-            headers: isObject( data ) ? { 'Content-type': 'application/json', ...headers } : headers
+            data: isObject( data )
+                ? JSON.stringify( data )
+                : data,
+            headers: isObject( data )
+                ? {
+                    'content-type': 'application/json',
+                    'content-length': JSON.stringify( data ).length,
+                    ...headers
+                }
+                : headers
         }
 
         try {
-            logger( 'making ring api request', axiosParams )
+            logger( 'making request:', loggableRequest( axiosParams ))
 
             const axiosResponse = await axios( axiosParams )
 
-            logger( 'got http response', loggableResponse( axiosResponse ))
+            logger( 'got response:', loggableResponse( axiosResponse ), null, 4 )
             return axiosResponse.data
         } catch ( e ) {
             const response = e.response
@@ -62,11 +75,11 @@ function restClient( apiUrls, { email, password }, logger ) {
     const authenticate = async() => {
 
         const authReqBody = {
-            'client_id': 'ring_official_android',
-            'grant_type': 'password',
-            'password': password,
-            'scope': 'client',
-            'username': email
+            client_id: 'ring_official_android',
+            grant_type: 'password',
+            password: password,
+            scope: 'client',
+            username: email
         }
         const reqData = {
             url: apiUrls.auth(),
@@ -81,7 +94,7 @@ function restClient( apiUrls, { email, password }, logger ) {
             throw propagatedError( `could not get auth token for user ${email}`, requestError )
         }
 
-        logger( colors.green( 'got auth token', authToken ))
+        logger( 'got auth token', colors.green( authToken ))
 
         return authToken
     }
@@ -89,21 +102,22 @@ function restClient( apiUrls, { email, password }, logger ) {
     const establishSession = async authToken => {
         const sessionReqBody = {
             device: {
-                'hardware_id': hardware_id,
-                'metadata': {
-                    'api_version': '9',
+                hardware_id: hardware_id,
+                metadata: {
+                    api_version: API_VERSION,
                 },
-                'os': 'ios'
+                os: 'android'
             }
         }
         const sessionReqHeaders = {
-            Authorization: `bearer ${authToken}`
+            Authorization: `Bearer ${authToken}`
         }
         const requestData = {
             url: apiUrls.session(),
             data: sessionReqBody,
             headers: sessionReqHeaders,
-            method: 'POST'
+            method: 'POST',
+            params: { api_version: API_VERSION }
         }
 
         let sessionToken
@@ -116,7 +130,7 @@ function restClient( apiUrls, { email, password }, logger ) {
         // delay copied from npm module doorbot - not sure what it is for
         await delay( 1500 )
 
-        logger( colors.green( 'got session token', sessionToken ))
+        logger( 'got session token', colors.green( sessionToken ))
 
         return sessionToken
     }
@@ -130,16 +144,18 @@ function restClient( apiUrls, { email, password }, logger ) {
         session,
 
         authenticatedRequest: async( method, url ) => {
-            const reqBodyData = {
+            const sessionToken = await session
+
+            const authFields = {
                 api_version: API_VERSION,
-                auth_token: await session
+                auth_token: sessionToken
             }
 
             const reqData = {
                 method,
                 url,
-                data: reqBodyData,
-                params: { api_version: API_VERSION },
+                data: authFields,
+                params: authFields,
                 headers: { 'user-agent': 'android:com.ringapp:2.0.67(423)' }
             }
 

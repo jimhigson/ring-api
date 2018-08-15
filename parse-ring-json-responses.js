@@ -1,7 +1,7 @@
 'use strict'
 
 const contentType = require( 'content-type' )
-const jsonBigIntParse = require( 'json-bigint' )({ 'storeAsString': true }).parse
+const jsonBigIntParse = require( 'json-bigint' )({ storeAsString: true }).parse
 
 const propagatedError = require( './propagated-error' )
 

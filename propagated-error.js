@@ -13,7 +13,11 @@ const combinedMessage = error => {
 
 module.exports = ( message, causedBy ) => {
 
-    const nativeMessage = combinedMessage({ isPropagatedError: true, ownMessage: message, causedBy })
+    const nativeMessage = combinedMessage({
+        isPropagatedError: true,
+        ownMessage: message,
+        causedBy
+    })
 
     const error = new Error( nativeMessage )
 

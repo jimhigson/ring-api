@@ -5,22 +5,31 @@
 const ringApi = require( '../main' )
 const { healthSummary, historySummary } = require( './formatters' )
 const { inspect } = require( 'util' )
+const colors = require( 'colors/safe' )
 
 const prompt = require( 'node-ask' ).prompt
 
-if ( !process.env.RING_USER || !process.env.RING_PASSWORD ) {
-    console.error( 'this example needs ring username and password in the environment' )
-    process.exit()
-}
+// edit here, or use the RING_USER and RING_PASSWORD environment variables:
+const username = undefined
+const password = undefined
 
 const main = async() => {
 
+    let ring
     try {
-        const ring = await ringApi({
+        ring = await ringApi({
             // we'll use the default options for this example. Maks sure you have the
-            // username and password as RING_USER or RING_PASSWORD or place them here
+            // username and password as RING_USER or RING_PASSWORD or place them above
+            username, password
         })
+    } catch ( e ) {
+        console.error( e )
+        console.error( colors.red( 'We couldn\'t create the API instance. This might be because ring.com changed their API again' ))
+        console.error( colors.red( 'or maybe your password is wrong, in any case, sorry can\'t help you today. Bye!' ))
+        return
+    }
 
+    try {
         console.log( '🎵active dings now are', await ring.activeDings())
 
         const devices = await ring.devices()

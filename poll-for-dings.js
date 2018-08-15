@@ -24,7 +24,10 @@ function pollForDings( getActiveDings, events, logger ) {
     let interval
 
     return {
-        start: () => interval = setInterval( poll, POLL_FREQUENCY ),
+        start: () => {
+            logger( `will poll for dings every ${POLL_FREQUENCY}ms` )
+            interval = setInterval( poll, POLL_FREQUENCY )
+        },
         stop: () => clearInterval( interval )
     }
 }

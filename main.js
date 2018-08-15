@@ -25,9 +25,15 @@ module.exports = async({
         throw propagatedError( 'session failed to initialise, cannot create ring-api instance', e )
     }
 
-    if ( poll ) {
-        container.pollForDings.start()
+    // Ring will sometimes return a token, but then later say the user is not authorised.
+    // Make a canary request to verify that the token actually works:
+    try {
+        await container.getDevicesList()
+    } catch ( e ) {
+        throw propagatedError( 'ring gave a seemingly valid authentication/authorisation, but the failed', e )
     }
+
+    container.pollForDings.start()
 
     return container.api
 }
