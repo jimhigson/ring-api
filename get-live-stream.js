@@ -15,7 +15,7 @@ function getLiveStream( restClient, apiUrls, getActiveDings, logger ) {
 
         const waitForDing = async() => {
 
-        // poll until the livestream is ready up to a maximum number of times
+            // poll until the livestream is ready up to a maximum number of times
             for ( let tries = 0; tries < maxTries; tries++ ) {
 
                 logger( `waiting for ding, attempt ${tries}` )
