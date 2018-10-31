@@ -33,8 +33,12 @@ module.exports = async({
         throw propagatedError( 'ring gave a seemingly valid authentication/authorisation, but the failed', e )
     }
 
-    container.pollForDings.start()
+    if ( poll ) {
+        container.pollForDings.start()
+    }
 
     return container.api
 }
+
+module.exports.AlarmDeviceType = require( './get-alarms' ).AlarmDeviceType
 

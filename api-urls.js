@@ -95,6 +95,10 @@ function apiUrls( options ) {
                 },
 
             })
+        },
+
+        connections() {
+            return 'https://app.ring.com/api/v1/rs/connections'
         }
 
     })

@@ -6,14 +6,16 @@ module.exports = bottle => {
         'getDevicesList',
         'getHistoryList',
         'getActiveDings',
+        'getAlarms',
         'events'
     )
 
-    function api( getDevicesList, getHistoryList, getActiveDings, events ) {
+    function api( getDevicesList, getHistoryList, getActiveDings, getAlarms, events ) {
         return {
             devices: getDevicesList,
             history: getHistoryList,
             activeDings: getActiveDings,
+            alarms: getAlarms,
             events
         }
     }

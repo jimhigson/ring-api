@@ -3,6 +3,7 @@
   "version": "3.0.7",
   "description": "Unofficial API for ring doorbells and other devices",
   "main": "main.js",
+  "typings": "main.d.ts",
   "dependencies": {
     "axios": "^0.18.0",
     "bottlejs": "^1.7.1",
@@ -17,7 +18,10 @@
     "lodash.flatten": "^4.4.0",
     "lodash.isobject": "^3.0.2",
     "lodash.mapkeys": "^4.6.0",
+    "lodash.uniq": "^4.5.0",
+    "rxjs": "^6.3.3",
     "sip.js": "^0.11.3",
+    "socket.io-client": "^2.1.1",
     "time-constants": "^1.0.2",
     "timeout-as-promise": "^1.0.0"
   },

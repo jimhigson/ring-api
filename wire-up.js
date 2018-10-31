@@ -13,6 +13,7 @@ module.exports = options => {
     require( './get-history-list' )( bottle )
     require( './get-live-stream' )( bottle )
     require( './get-devices-list' )( bottle )
+    require( './get-alarms' )( bottle )
     require( './poll-for-dings' )( bottle )
     require( './get-active-dings' )( bottle )
 

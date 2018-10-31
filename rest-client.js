@@ -9,6 +9,7 @@ const isObject = require( 'lodash.isobject' )
 const compose = require( 'lodash.compose' )
 const propagatedError = require( './propagated-error' )
 const colors = require( 'colors/safe' )
+const querystring = require( 'querystring' )
 
 const loggableObject = color => object => colors[ color ]( JSON.stringify( object, null, 4 ))
 
@@ -27,8 +28,8 @@ function restClient( apiUrls, { email, password }, logger ) {
     const loggableResponse = compose( loggableObject( 'cyan' ), loggableResponseFields )
     const loggableRequest = loggableObject( 'yellow' )
 
-    const ringRequest = async({ method, url, headers = {}, data, params = {} }) => {
-
+    const ringRequest = async options => {
+        const { method, url, headers = {}, data, params = {} } = options
         const axiosParams = {
             transformResponse: [ require( './parse-ring-json-responses' ) ],
             method,
@@ -54,7 +55,13 @@ function restClient( apiUrls, { email, password }, logger ) {
             logger( 'got response:', loggableResponse( axiosResponse ), null, 4 )
             return axiosResponse.data
         } catch ( e ) {
-            const response = e.response
+            const response = e.response || {}
+
+            if ( e.code === 'ENOTFOUND' ) {
+                logger( colors.red( `http request failed.  ${url} not found.  Trying again in 5 seconds` ))
+                await delay( 5000 )
+                return ringRequest( options )
+            }
 
             logger( colors.red( 'http request errored' ), e.response ? e.response.data : 'without response' )
 
@@ -127,15 +134,17 @@ function restClient( apiUrls, { email, password }, logger ) {
             throw propagatedError( `could not get a session token given auth token ${authToken}`, requestError )
         }
 
-        // delay copied from npm module doorbot - not sure what it is for
-        await delay( 1500 )
-
         logger( 'got session token', colors.green( sessionToken ))
 
         return sessionToken
     }
 
-    const authenticatedSession = async() => establishSession( await authenticate())
+    let authToken = authenticate()
+    const reauthenticate = () => {
+        authToken = authenticate()
+    }
+
+    const authenticatedSession = async() => establishSession( await authToken )
 
     const session = authenticatedSession()
 
@@ -143,7 +152,7 @@ function restClient( apiUrls, { email, password }, logger ) {
         // await on .session to be sure that are authenticated
         session,
 
-        authenticatedRequest: async( method, url ) => {
+        authenticatedRequest: async( method, url, data, headers = {}) => {
             const sessionToken = await session
 
             const authFields = {
@@ -154,9 +163,9 @@ function restClient( apiUrls, { email, password }, logger ) {
             const reqData = {
                 method,
                 url,
-                data: authFields,
+                data: data || authFields,
                 params: authFields,
-                headers: { 'user-agent': 'android:com.ringapp:2.0.67(423)' }
+                headers: Object.assign({ 'user-agent': 'android:com.ringapp:2.0.67(423)' }, headers )
             }
 
             let responseJson
@@ -171,6 +180,31 @@ function restClient( apiUrls, { email, password }, logger ) {
             }
 
             return responseJson
+        },
+
+        async oauthRequest( method, url, data ) {
+            try {
+                const token = await authToken
+                const headers = {
+                    'content-type': 'application/x-www-form-urlencoded',
+                    authorization: `Bearer ${token}`
+                }
+
+                return await ringRequest({
+                    method,
+                    url,
+                    data: querystring.stringify( data ),
+                    headers
+                })
+
+            } catch ( e ) {
+                if ( e.causedBy && e.causedBy.response && e.causedBy.response.status === 401 ) {
+                    reauthenticate()
+                    return this.oauthRequest( method, url, data )
+                }
+
+                throw e
+            }
         }
     }
 }

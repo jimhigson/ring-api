@@ -184,6 +184,37 @@ printHealth( devices.chimes[0] );
 printHealth( devices.cameras[0] );
 ```
 
+Ring Alarm
+----------
+### Fetching Alarms
+```js
+const alarms = await ringApi.alarms();
+```
+`alarms` will be an array of alarms based on the locations you have set
+up in Ring.  Each location has it's own alarm that can be armed or disarmed,
+and used to interact with alarm devices in that location.
+### Arming/Disarming Alarms
+```js
+const alarm = alarms[0]
+alarm.disarm()
+alarm.armHome([/* optional array of zids for devices to bypass */])
+alarm.armAway([/* bypass zids */])
+const rooms = await alarm.getRooms() // array of rooms { id: number, name: string }
+```
+### Devices
+Once you have acquired the alarm for you desired location, you can start
+to interact with associated devices.
+```js
+const devices = await alarm.getDevices()
+const baseStation = devices.find(device => device.data.deviceType === 'hub.redsky')
+baseStation.setVolume(.75) // base station and keyboard support volume settings between 0 and 1
+console.log(baseStation.data) // object containing properties like zid, name, roomId, faulted, tamperStatus, etc.
+baseStation.onData.subscribe(data => {
+    // this will be called any time data is updated for this specific device
+})
+```
+
+
 debugging
 ---------
 
