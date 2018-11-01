@@ -96,7 +96,9 @@ function getAlarms( restClient, apiUrls, getDeviceList ) {
             this.onDataUpdate = new Subject()
             this.onDeviceDataUpdate = this.onDataUpdate
                 .pipe(
-                    filter( message => Boolean( message.body )),
+                    filter( message => {
+                        return message.datatype === 'DeviceInfoDocType' && Boolean( message.body )
+                    }),
                     concatMap( message => message.body ),
                     map( flattenDeviceData )
                 )
