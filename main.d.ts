@@ -34,6 +34,12 @@ declare namespace RingApi {
         roomId?: number
         volume?: number
         mode?: 'all' | 'some' | 'none'
+        alarmInfo?: {
+            state: 'burglar-alarm' | 'entry-delay'
+            faultedDevices?: string[]
+            timestamp?: number
+            uuid?: string
+        }
     }
 
     interface AlarmDevice {
