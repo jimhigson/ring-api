@@ -43,6 +43,7 @@ declare namespace RingApi {
     }
 
     interface AlarmDevice {
+        zid: string
         onData: Observable<AlarmDeviceData>
         data: AlarmDeviceData
         alarm: Alarm
@@ -57,7 +58,10 @@ declare namespace RingApi {
         onDeviceDataUpdate: Observable<AlarmDeviceData>
 
         getDevices (): Promise<AlarmDevice[]>
-        requestList <T = any> (listType: string): Promise<T[]>
+        onDevices (): Observable<AlarmDevice[]>
+        requestList (listType: string): void
+        getList <T = any> (listType: string): Promise<T[]>
+        getNextMessageOfType <T = any> (type: string): Promise<T>
         sendMessage (message: any): Promise<void>
         setDeviceInfo (zid: string, body: any): Promise<void>
         getRoomList (): Promise<{ id: number, name: string }>

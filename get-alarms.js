@@ -2,7 +2,7 @@
 
 const io = require( 'socket.io-client' )
 const { Subject, BehaviorSubject } = require( 'rxjs' )
-const { filter, take, map, concatMap } = require( 'rxjs/operators' )
+const { filter, take, map, concatMap, distinctUntilChanged, publishReplay, scan } = require( 'rxjs/operators' )
 const unique = require( 'lodash.uniq' )
 const delay = require( 'timeout-as-promise' )
 
@@ -14,16 +14,18 @@ module.exports = bottle => bottle.service( 'getAlarms', getAlarms,
 )
 
 const DeviceType = {
-    BaseStation: 'hub.redsky',
-    Keypad: 'security-keypad',
-    SecurityPanel: 'security-panel',
-    ContactSensor: 'sensor.contact',
-    MotionSensor: 'sensor.motion',
-    RangeExtender: 'range-extender.zwave',
-    ZigbeeAdapter: 'adapter.zigbee',
-    AccessCodeVault: 'access-code.vault',
-    AccessCode: 'access-code',
-}
+        BaseStation: 'hub.redsky',
+        Keypad: 'security-keypad',
+        SecurityPanel: 'security-panel',
+        ContactSensor: 'sensor.contact',
+        MotionSensor: 'sensor.motion',
+        RangeExtender: 'range-extender.zwave',
+        ZigbeeAdapter: 'adapter.zigbee',
+        AccessCodeVault: 'access-code.vault',
+        AccessCode: 'access-code',
+    },
+    deviceListMessageType = 'DeviceInfoDocGetList'
+
 module.exports.AlarmDeviceType = DeviceType
 
 const deviceTypesWithVolume = [ DeviceType.BaseStation, DeviceType.Keypad ]
@@ -39,21 +41,22 @@ function flattenDeviceData( data ) {
 function getAlarms( restClient, apiUrls, getDeviceList, logger ) {
 
     class Device {
-        constructor( data, alarm ) {
-            const initialData = flattenDeviceData( data )
-
+        constructor( initialData, alarm ) {
+            this.zid = initialData.zid
             this.onData = new BehaviorSubject( initialData )
             this.alarm = alarm
 
             alarm.onDeviceDataUpdate
                 .pipe(
                     filter( update => {
-                        return update.zid === this.data.zid
+                        return update.zid === this.zid
                     })
                 )
-                .subscribe( update => {
-                    this.onData.next( Object.assign({}, this.data, update ))
-                })
+                .subscribe( update => this.updateData( update ))
+        }
+
+        updateData( update ) {
+            this.onData.next( Object.assign({}, this.data, update ))
         }
 
         get data() {
@@ -75,7 +78,7 @@ function getAlarms( restClient, apiUrls, getDeviceList, logger ) {
                 throw new Error( `Volume can only be set on ${deviceTypesWithVolume.join( ', ' )}` )
             }
 
-            this.alarm.setDeviceInfo( this.data.zid, { device: { v1: { volume } } })
+            this.alarm.setDeviceInfo( this.zid, { device: { v1: { volume } } })
         }
 
         toString() {
@@ -103,6 +106,32 @@ function getAlarms( restClient, apiUrls, getDeviceList, logger ) {
                     concatMap( message => message.body ),
                     map( flattenDeviceData )
                 )
+            this.onDeviceList = this.onMessage
+                .pipe(
+                    filter( m => m.msg === deviceListMessageType ),
+                    map( m => m.body )
+                )
+            this.onDevices = this.onDeviceList
+                .pipe(
+                    scan(( devices, deviceList ) => {
+                        return deviceList.reduce(( updatedDevices, data ) => {
+                            const flatData = flattenDeviceData( data ),
+                                existingDevice = updatedDevices.find( x => x.zid === flatData.zid )
+
+                            if ( existingDevice ) {
+                                existingDevice.updateData( flatData )
+                                return updatedDevices
+                            }
+
+                            return [ ...updatedDevices, new Device( flatData, this ) ]
+                        }, devices )
+                    }, []),
+                    distinctUntilChanged(( a, b ) => a.length === b.length ),
+                    publishReplay( 1 )
+                )
+
+            // start listening for devices immediately
+            this.onDevices.connect()
         }
 
         async createConnection() {
@@ -138,6 +167,7 @@ function getAlarms( restClient, apiUrls, getDeviceList, logger ) {
                 connection.once( 'connect', () => {
                     resolve( connection )
                     logger( 'Ring alarm connected to socket.io server' )
+                    this.requestList( deviceListMessageType )
                 })
                 connection.once( 'error', reject )
             }).catch( reconnect )
@@ -197,16 +227,25 @@ function getAlarms( restClient, apiUrls, getDeviceList, logger ) {
 
         requestList( listType ) {
             this.sendMessage({ msg: listType })
+        }
+
+        getList( listType ) {
+            this.requestList( listType )
             return this.getNextMessageOfType( listType )
         }
 
-        async getDevices() {
-            const devices = await this.requestList( 'DeviceInfoDocGetList' )
-            return devices.map( data => new Device( data, this ))
+        getDevices() {
+            if ( !this.connectionPromise ) {
+                this.getConnection()
+            }
+
+            return this.onDevices.pipe(
+                take( 1 )
+            ).toPromise()
         }
 
         getRoomList() {
-            return this.requestList( 'RoomGetList' )
+            return this.getList( 'RoomGetList' )
         }
 
         async getSecurityPanelZid() {
@@ -223,7 +262,7 @@ function getAlarms( restClient, apiUrls, getDeviceList, logger ) {
                 throw new Error( `Could not find a security panel for location ${this.locationId}` )
             }
 
-            return this.securityPanelZid = securityPanel.data.zid
+            return this.securityPanelZid = securityPanel.zid
         }
 
         disarm() {
