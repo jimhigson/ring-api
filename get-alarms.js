@@ -9,7 +9,8 @@ const delay = require( 'timeout-as-promise' )
 module.exports = bottle => bottle.service( 'getAlarms', getAlarms,
     'restClient',
     'apiUrls',
-    'getDevicesList'
+    'getDevicesList',
+    'logger'
 )
 
 const DeviceType = {
@@ -35,7 +36,7 @@ function flattenDeviceData( data ) {
     )
 }
 
-function getAlarms( restClient, apiUrls, getDeviceList ) {
+function getAlarms( restClient, apiUrls, getDeviceList, logger ) {
 
     class Device {
         constructor( data, alarm ) {
@@ -105,6 +106,7 @@ function getAlarms( restClient, apiUrls, getDeviceList ) {
         }
 
         async createConnection() {
+            logger( 'Creating alarm socket.io connection' )
             const connectionDetails = await restClient.oauthRequest( 'POST', apiUrls.connections(), {
                 accountId: this.locationId
             })
@@ -115,17 +117,28 @@ function getAlarms( restClient, apiUrls, getDeviceList ) {
                     return this.connectionPromise
                 }
 
+                logger( 'Reconnecting alarm socket.io connection' )
                 this.reconnecting = true
                 connection.close()
                 return this.connectionPromise = delay( 1000 ).then(() => this.createConnection())
             }
 
             this.reconnecting = false
-            connection.on( 'DataUpdate', message => this.onDataUpdate.next( message ))
+            connection.on( 'DataUpdate', message => {
+                if ( message.type === 'HubDisconnectionEventType' ) {
+                    logger( 'Alarm connection told to reconnect' )
+                    return reconnect()
+                }
+
+                this.onDataUpdate.next( message )
+            })
             connection.on( 'message', message => this.onMessage.next( message ))
             connection.on( 'error', reconnect )
             return new Promise(( resolve, reject ) => {
-                connection.once( 'connect', () => resolve( connection ))
+                connection.once( 'connect', () => {
+                    resolve( connection )
+                    logger( 'Ring alarm connected to socket.io server' )
+                })
                 connection.once( 'error', reject )
             }).catch( reconnect )
         }
