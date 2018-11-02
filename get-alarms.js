@@ -154,7 +154,7 @@ function getAlarms( restClient, apiUrls, getDeviceList, logger ) {
 
             this.reconnecting = false
             connection.on( 'DataUpdate', message => {
-                if ( message.type === 'HubDisconnectionEventType' ) {
+                if ( message.datatype === 'HubDisconnectionEventType' ) {
                     logger( 'Alarm connection told to reconnect' )
                     return reconnect()
                 }
