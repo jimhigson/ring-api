@@ -10,7 +10,7 @@ const colors = require( 'colors/safe' )
 const prompt = require( 'node-ask' ).prompt
 
 // edit here, or use the RING_USER and RING_PASSWORD environment variables:
-const username = undefined
+const email = undefined
 const password = undefined
 
 const main = async() => {
@@ -19,8 +19,8 @@ const main = async() => {
     try {
         ring = await ringApi({
             // we'll use the default options for this example. Maks sure you have the
-            // username and password as RING_USER or RING_PASSWORD or place them above
-            username, password
+            // email and password as RING_USER or RING_PASSWORD or place them above
+            email, password
         })
     } catch ( e ) {
         console.error( e )
