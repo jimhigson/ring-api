@@ -101,6 +101,9 @@ function restClient( apiUrls, { email, password }, logger ) {
             throw propagatedError( `could not get auth token for user ${email}`, requestError )
         }
 
+        // delay to allow ring api time to store the new auth token
+        await delay( 1500 )
+
         logger( 'got auth token', colors.green( authToken ))
 
         return authToken
@@ -133,6 +136,9 @@ function restClient( apiUrls, { email, password }, logger ) {
         } catch ( requestError ) {
             throw propagatedError( `could not get a session token given auth token ${authToken}`, requestError )
         }
+
+        // delay to allow ring api time to store the new session token
+        await delay( 1500 )
 
         logger( 'got session token', colors.green( sessionToken ))
 
