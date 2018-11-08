@@ -12,6 +12,13 @@ const colors = require( 'colors/safe' )
 const querystring = require( 'querystring' )
 
 const loggableObject = color => object => colors[ color ]( JSON.stringify( object, null, 4 ))
+const ringErrorCodes = {
+    7050: 'NO_ASSET',
+    7019: 'ASSET_OFFLINE',
+    7061: 'ASSET_CELL_BACKUP',
+    7062: 'UPDATING',
+    7063: 'MAINTENANCE'
+}
 
 module.exports = bottle => bottle.service( 'restClient', restClient,
     'apiUrls',
@@ -101,9 +108,6 @@ function restClient( apiUrls, { email, password }, logger ) {
             throw propagatedError( `could not get auth token for user ${email}`, requestError )
         }
 
-        // delay to allow ring api time to store the new auth token
-        await delay( 1500 )
-
         logger( 'got auth token', colors.green( authToken ))
 
         return authToken
@@ -136,9 +140,6 @@ function restClient( apiUrls, { email, password }, logger ) {
         } catch ( requestError ) {
             throw propagatedError( `could not get a session token given auth token ${authToken}`, requestError )
         }
-
-        // delay to allow ring api time to store the new session token
-        await delay( 1500 )
 
         logger( 'got session token', colors.green( sessionToken ))
 
@@ -204,9 +205,27 @@ function restClient( apiUrls, { email, password }, logger ) {
                 })
 
             } catch ( e ) {
-                if ( e.causedBy && e.causedBy.response && e.causedBy.response.status === 401 ) {
+                const response = e.causedBy && e.causedBy.response
+
+                if ( response && response.status === 401 ) {
                     reauthenticate()
                     return this.oauthRequest( method, url, data )
+                }
+
+                if ( response && response.status === 404
+                    && response.data && Array.isArray( response.data.errors )) {
+                    const
+                        errors = response.data.errors,
+                        errorText = errors.map( code => ringErrorCodes[ code ]).filter( x => x ).join( ', ' )
+
+                    if ( errorText ) {
+                        logger( colors.red( `http request failed.  ${url} returned errors: (${errorText}).  Trying again in 20 seconds` ))
+
+                        await delay( 20000 )
+                        return this.oauthRequest( method, url, data )
+                    } else {
+                        logger( colors.red( `http request failed.  ${url} returned unknown errors: (${errors}).  Trying again in 20 seconds` ))
+                    }
                 }
 
                 throw e
