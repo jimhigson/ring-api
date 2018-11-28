@@ -31,6 +31,7 @@ declare namespace RingApi {
         serialNumber?: string
         tamperStatus: 'ok' | 'tamper'
         faulted?: boolean
+        locked?: 'jammed' | 'locked' | 'unlocked' | 'unknown'
         roomId?: number
         volume?: number
         mode?: 'all' | 'some' | 'none'
