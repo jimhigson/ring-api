@@ -18,6 +18,9 @@ declare namespace RingApi {
         ZigbeeAdapter = 'adapter.zigbee',
         AccessCodeVault = 'access-code.vault',
         AccessCode = 'access-code',
+        SmokeAlarm = 'alarm.smoke',
+        CoAlarm = 'alarm.co',
+        SmokeCoListener = 'listener.smoke-co',
     }
 
     interface AlarmDeviceData {
@@ -36,11 +39,14 @@ declare namespace RingApi {
         volume?: number
         mode?: 'all' | 'some' | 'none'
         alarmInfo?: {
-            state: 'burglar-alarm' | 'entry-delay'
+            state: 'burglar-alarm' | 'entry-delay' | 'fire-alarm' | 'co-alarm' | 'panic' | 'user-verified-co-or-fire-alarm' | 'user-verified-burglar-alarm'
             faultedDevices?: string[]
             timestamp?: number
             uuid?: string
         }
+        alarmStatus?: 'active'
+        co?: { alarmStatus?: 'active' }
+        smoke?: { alarmStatus?: 'active' }
     }
 
     interface AlarmDevice {

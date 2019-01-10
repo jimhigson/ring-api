@@ -23,6 +23,9 @@ const DeviceType = {
         ZigbeeAdapter: 'adapter.zigbee',
         AccessCodeVault: 'access-code.vault',
         AccessCode: 'access-code',
+        SmokeAlarm: 'alarm.smoke',
+        CoAlarm: 'alarm.co',
+        SmokeCoListener: 'listener.smoke-co',
     },
     deviceListMessageType = 'DeviceInfoDocGetList'
 
