@@ -21,7 +21,7 @@ module.exports = bottle => bottle.service( 'getHistoryList', getHistoryList,
     'restClient',
     'apiUrls'
 )
-function getHistoryList( restClient, apiUrls ) {
+function getHistoryList( restClient, apiUrls, limit ) {
 
     class HistoryItem {
 
@@ -47,9 +47,9 @@ function getHistoryList( restClient, apiUrls ) {
         }
     }
 
-    return async() => {
+    return async( limit ) => {
         const historyListUrl = apiUrls.doorbots().history()
-        const historyItems = await restClient.authenticatedRequest( 'GET', historyListUrl )
+        const historyItems = await restClient.authenticatedRequest( 'GET', `${historyListUrl}?limit=${limit || 20}` )
 
         return historyItems.map( h => new HistoryItem( h ))
     }
