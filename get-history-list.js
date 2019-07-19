@@ -46,9 +46,8 @@ function getHistoryList( restClient, apiUrls, limit ) {
             return `[${this.kind} ${emojis[ this.kind ] || ''} at "${this.doorbot.description}" ${this.created_at}]`
         }
     }
-    console.log(arguments)
 
-    return async(limit) => {
+    return async( limit ) => {
         const historyListUrl = apiUrls.doorbots().history()
         const historyItems = await restClient.authenticatedRequest( 'GET', `${historyListUrl}?limit=${limit || 20}` )
 
